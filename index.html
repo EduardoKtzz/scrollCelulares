@@ -324,12 +324,26 @@ a{color:inherit;text-decoration:none}
 }
 .ilha-estado{
   position:absolute;inset:0;
-  display:flex;align-items:center;justify-content:center;gap:.42em;
+  display:flex;align-items:center;justify-content:center;gap:.5em;
   opacity:0;
   animation:ilhaCiclo 13s ease-in-out infinite;
 }
-.ilha-estado i{font-style:normal;font-size:.74em;line-height:1}
+/* o emoji vai DENTRO de um disco, não solto ao lado do texto.
+   é o que transforma "texto com emoji" em notificação: o disco dá
+   massa vertical (75% da altura da ilha) e cria uma zona à esquerda,
+   como o avatar da referência. o anel colorido muda por etapa. */
+.ilha-estado i{
+  font-style:normal;font-size:.62em;line-height:1;
+  width:2.35em;height:2.35em;border-radius:50%;flex:none;
+  display:grid;place-items:center;
+  background:var(--fundo);
+  box-shadow:inset 0 0 0 .1em var(--cor), 0 .15em .4em rgba(0,0,0,.5);
+}
 .ilha-estado b{font-size:.6em;font-weight:600;color:#eaf2ff;white-space:nowrap;letter-spacing:-.01em}
+.ilha-estado.e1{--cor:#f59e0b;--fundo:#3a2a0c}
+.ilha-estado.e2{--cor:#3b82f6;--fundo:#122744}
+.ilha-estado.e3{--cor:#22c55e;--fundo:#0f2f1c}
+.ilha-estado.e4{--cor:#22c55e;--fundo:#0f2f1c}
 /* as janelas se cruzam de propósito: o estado que sai ainda está em
    ~30% quando o próximo começa a entrar. sem essa sobreposição a
    ilha pisca vazia entre um e outro. */
