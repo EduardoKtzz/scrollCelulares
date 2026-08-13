@@ -613,10 +613,16 @@ a{color:inherit;text-decoration:none}
    ficava mais largo que o aparelho e vazava pelas laterais.
    em cqw/cqh ele acompanha a moldura exatamente, sem número mágico. */
 .hero-text{
-  position:absolute;left:19%;right:19%;top:17cqh;z-index:4;
+  position:absolute;left:13%;right:13%;top:17cqh;z-index:4;
   translate:0 -50%;
   text-align:center;
-  font-size:5.8cqw;          /* tudo abaixo é em em, relativo a isto */
+  /* 6.8cqw e 74% de largura (eram 5.8cqw e 62%). na referência o texto
+     ocupa ~72% da tela com a fonte em ~7.4cqw — o meu estava pequeno e
+     sobrava tela vazia dos dois lados.
+     a 7.2cqw a linha "Da bancada à entrega," ficava a 9px da borda: se
+     a fonte do Google demorar e o navegador cair no fallback, a métrica
+     muda e a linha quebra em três. 6.8 dá ~45px de folga. */
+  font-size:6.8cqw;          /* tudo abaixo é em em, relativo a isto */
   opacity:calc(1 - var(--pt));
 }
 .hero-kicker{color:#9fb2cc;font-size:.31em;margin-bottom:.34em}
@@ -624,7 +630,7 @@ a{color:inherit;text-decoration:none}
 .hero-actions{display:flex;gap:.23em;justify-content:center;flex-wrap:wrap;margin-top:.57em}
 /* o height/padding usam o em do próprio botão, não o do bloco */
 .hero-actions .btn{font-size:.27em;height:3.1em;padding:0 1.55em}
-@media(max-width:900px){.hero-text{left:9%;right:9%}}
+@media(max-width:900px){.hero-text{left:7%;right:7%}}
 
 /* --- peças flutuantes em volta do celular ---
    equivalem às moedas 3D da referência. sobem conforme o scroll, e
