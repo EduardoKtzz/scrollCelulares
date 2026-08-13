@@ -889,17 +889,22 @@ section{position:relative;z-index:2}
    linhas já estavam adensadas demais — por isso ainda piscava.
    zerando em 46%, o ponto mais fundo ainda visível projeta a célula
    com ~86px de espaçamento, bem longe do sub-pixel. */
+/* a máscara desbota nas DUAS pontas.
+   no fundo, pelo serrilhado já explicado. na ENTRADA (os primeiros 5%)
+   porque ali a linha era cortada a seco pelo overflow da parede: uma
+   linha de 2px aparecendo de uma vez lê como pisca. com o desbote ela
+   entra em fade. */
 .parede.esq{
   left:0;transform-origin:left center;transform:rotateY(90deg);
-  mask-image:linear-gradient(90deg,#000 0 12%,rgba(0,0,0,.45) 30%,transparent 46%);
-  -webkit-mask-image:linear-gradient(90deg,#000 0 12%,rgba(0,0,0,.45) 30%,transparent 46%);
+  mask-image:linear-gradient(90deg,transparent 0,#000 5% 12%,rgba(0,0,0,.45) 30%,transparent 46%);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 5% 12%,rgba(0,0,0,.45) 30%,transparent 46%);
 }
 /* SEM scaleX(-1): combinado com o rotateY(-90deg) ele invertia o eixo
    e mandava a parede para FORA da tela, em vez de para o fundo. */
 .parede.dir{
   right:0;transform-origin:right center;transform:rotateY(-90deg);
-  mask-image:linear-gradient(270deg,#000 0 12%,rgba(0,0,0,.45) 30%,transparent 46%);
-  -webkit-mask-image:linear-gradient(270deg,#000 0 12%,rgba(0,0,0,.45) 30%,transparent 46%);
+  mask-image:linear-gradient(270deg,transparent 0,#000 5% 12%,rgba(0,0,0,.45) 30%,transparent 46%);
+  -webkit-mask-image:linear-gradient(270deg,transparent 0,#000 5% 12%,rgba(0,0,0,.45) 30%,transparent 46%);
 }
 /* a grade corre dentro da parede. o deslocamento é EXATAMENTE uma
    célula (190px), então o laço fecha sem emenda — e anima só transform.
@@ -910,7 +915,7 @@ section{position:relative;z-index:2}
   background:
     repeating-linear-gradient(90deg,transparent 0 188px,rgba(255,255,255,.13) 188px 190px),
     repeating-linear-gradient(0deg, transparent 0 188px,rgba(255,255,255,.13) 188px 190px);
-  animation:correGrade 17s linear infinite;
+  animation:correGrade 11s linear infinite;
   /* camada própria: sem isso o navegador re-rasteriza a grade a cada
      quadro sobre a projeção em perspectiva, e é aí que ela cintila */
   will-change:transform;
