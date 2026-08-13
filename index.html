@@ -52,6 +52,7 @@
   --pf:0;   /* FOCO NO CELULAR: luz migra do topo para o aro,
                vinheta fecha e as partículas somem              */
   --pp:0;   /* painel de avaliação: pulso (entra E sai)         */
+  --pv:0;   /* fecho verde: chat sai, check entra, espiral preenche */
   /* as frases grandes não têm variável própria: usam --pa, para
      nascerem junto com os balões da conversa */
   --p4:0;   /* tudo sai + título final entra       */
@@ -129,9 +130,10 @@ a{color:inherit;text-decoration:none}
      21 painel de avaliação · 24 título final
    (o texto do hero fica DENTRO da .screen, não neste empilhamento)
    ============================================================ */
-/* 700vh: as fases são frações desta altura, então encurtar acelera a
-   sequência inteira mantendo as proporções entre elas. */
-.hero{position:relative;height:700vh}
+/* 790vh: as fases são frações desta altura, então mudar aqui acelera
+   ou desacelera a sequência inteira mantendo as proporções.
+   subiu de 700 para abrir espaço ao fecho verde sem espremer o resto. */
+.hero{position:relative;height:790vh}
 .hero-sticky{position:sticky;top:0;height:100vh;overflow:hidden}
 
 /* z-index 5: acima do brilho e das peças de trás, abaixo das da frente —
@@ -350,6 +352,43 @@ a{color:inherit;text-decoration:none}
      era ilegível na tela do site. */
   font-size:7cqw;
   padding:7.4cqh .8em 2.8cqh;
+  /* sai inteiro no primeiro quarto do fecho verde */
+  opacity:clamp(0, calc(1 - var(--pv) * 4), 1);
+}
+
+/* ============================================================
+   FECHO VERDE — a tela limpa, o check entra e o verde preenche
+   ============================================================ */
+/* o disco cresce E varre o ângulo ao mesmo tempo: é o cruzamento
+   dos dois que faz a borda descrever uma espiral. só um deles, e
+   viraria ou um círculo abrindo ou um ponteiro de relógio. */
+.espiral{
+  --l:clamp(0, calc((var(--pv) - .34) * 1.52), 1);
+  position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:5;
+  width:240%;aspect-ratio:1;border-radius:50%;
+  background:conic-gradient(from -90deg,
+    #16a34a 0deg,
+    #16a34a calc(var(--l) * 360deg),
+    transparent calc(var(--l) * 360deg));
+  scale:var(--l);
+}
+/* o check fica ACIMA do preenchimento e usa o mesmo verde de fundo:
+   quando a espiral alcança, o disco dele se funde à tela e sobra só
+   o traço branco */
+.check{
+  --l:clamp(0, calc((var(--pv) - .18) * 4), 1);
+  position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:6;
+  width:30%;aspect-ratio:1;border-radius:50%;
+  display:grid;place-items:center;
+  background:#16a34a;
+  box-shadow:0 0 4cqw rgba(34,197,94,.55);
+  opacity:var(--l);
+  scale:calc(.45 + .55 * var(--l));
+}
+.check svg{
+  width:52%;height:52%;
+  fill:none;stroke:#fff;stroke-width:2.6;
+  stroke-linecap:round;stroke-linejoin:round;
 }
 
 /* cabeçalho da conversa */
@@ -840,6 +879,12 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             </div>
           </div>
 
+          <!-- fecho verde: preenchimento em espiral + check -->
+          <div class="espiral"></div>
+          <div class="check">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.6 10 17.5 19.2 7.4"/></svg>
+          </div>
+
           <!-- texto do hero: mora DENTRO da tela, junto com as cenas.
                é o que garante que ele encolha na mesma proporção da moldura -->
           <div class="hero-text">
@@ -1024,7 +1069,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     const total = hero.offsetHeight - window.innerHeight;
     const p = total > 0 ? clamp((window.scrollY - hero.offsetTop)/total, 0, 1) : 0;
 
-    /* AGENDA DAS FASES — frações dos 1000vh de scroll útil.
+    /* AGENDA DAS FASES — frações do scroll útil do hero.
 
        o app entra ANTES do texto zerar (.09 contra .13). a sobreposição
        é de propósito: a curva de suavização achata nas pontas, então
@@ -1032,16 +1077,16 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
        tela apaga. cruzando, a soma nunca chega perto de zero — e nenhum
        dos dois fica legível enquanto o outro está visível.
 
-         fase              faixa           distância
-         celular encolhe   0    → .15       150vh
-         texto some        .04  → .13        90vh
-         peças sobem       0    → .18       180vh
-         CONVERSA+FRASES   .09  → .46       370vh   escalonadas juntas
-         foco no celular   .10  → .26       160vh   junto com a conversa
+         fase              faixa
+         celular encolhe   0    → .15
+         texto some        .04  → .13
+         peças sobem       0    → .18
+         CONVERSA+FRASES   .09  → .46      escalonadas juntas
+         foco no celular   .10  → .26      junto com a conversa
          painel (entra)    .50  → .58
-         painel (sai)      .61  → .66              saída curta
-         cena limpa        .66  → .76              respiro
-         título final      .76  → .90
+         painel (sai)      .61  → .66      saída curta
+         FECHO VERDE       .66  → .86
+         título final      .88  → .98
 
        dentro de --pa tudo se escalona sozinho, pelo --t de cada
        elemento (ver os blocos "A CONVERSA" e "FRASES" no CSS):
@@ -1049,9 +1094,14 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
          .20 balão 1  +  "Recebeu."
          .34 balão 2  +  "Consertou."
          .48 resposta +  "Entregou."
-         .62 balão 3                                                   */
+         .62 balão 3
+
+       e dentro de --pv o fecho verde faz o mesmo:
+         .00 → .25  o chat sai
+         .18 → .43  o check entra
+         .34 → 1    a espiral preenche a tela                          */
     const pt = ease(range(p,.04,.13));
-    const p4 = ease(range(p,.76,.90));
+    const p4 = ease(range(p,.88,.98));
     const pEncolhe = ease(range(p,0,.15));
 
     def('--p', pEncolhe.toFixed(4));
@@ -1080,6 +1130,9 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
        sensação de demora até a cena limpa aparecer. */
     const pp = ease(range(p,.50,.58)) - ease(range(p,.61,.66));
     def('--pp', pp.toFixed(4));
+    /* fecho verde SEM easing: a varredura da espiral precisa acompanhar
+       a roda de forma linear, senão acelera e freia no meio do giro */
+    def('--pv', range(p,.66,.86).toFixed(4));
     def('--p4', p4.toFixed(4));
 
     /* botões invisíveis não podem receber clique */

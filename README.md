@@ -20,7 +20,13 @@ escreve variáveis CSS na raiz. Todo o resto é CSS reagindo a essas variáveis.
 | `--po` | as peças 3D flutuantes sobem e saem de quadro |
 | `--pf` | foco no aparelho: luz migra do topo para o aro, vinheta fecha, partículas somem |
 | `--pp` | pulso do card de avaliação (entra, segura, sai) |
+| `--pv` | fecho verde: o chat sai, o check entra, a espiral preenche a tela |
 | `--p4` | tudo sai e o título final entra |
+
+O preenchimento em espiral cruza duas coisas ao mesmo tempo: um disco que
+cresce (`scale`) e um `conic-gradient` cujo ângulo varre de 0 a 360°. Só uma
+delas daria um círculo abrindo ou um ponteiro de relógio; juntas, a borda do
+verde descreve uma espiral.
 
 A agenda das fases está documentada numa tabela em comentário, logo acima do
 bloco que escreve as variáveis (procure por `AGENDA DAS FASES`).
