@@ -872,8 +872,10 @@ section{position:relative;z-index:2}
   perspective:760px;perspective-origin:50% 50%;
   pointer-events:none;
 }
+/* 2000px de profundidade (era 2600): quanto mais longa a parede, mais
+   comprimido o fundo — e é lá que as linhas serrilham. */
 .parede{
-  position:absolute;top:-60%;height:220%;width:2600px;
+  position:absolute;top:-60%;height:220%;width:2000px;
   overflow:hidden;
   transform-style:preserve-3d;
 }
@@ -881,20 +883,23 @@ section{position:relative;z-index:2}
    para um lado, então a direção do gradiente é espelhada — a borda
    PERTO do observador é a que fica opaca. */
 /* a máscara corta o TRECHO DISTANTE, onde as linhas se comprimem até
-   ficarem com espaçamento sub-pixel e começam a serrilhar. era ela
-   piscando, não a animação. some bem antes disso (opaca só nos
-   primeiros 14%, transparente já em 58%). */
+   espaçamento sub-pixel e serrilham.
+   ATENÇÃO: a máscara é linear no comprimento da parede, mas a
+   compressão da perspectiva NÃO é. aos 58% que eu usava antes as
+   linhas já estavam adensadas demais — por isso ainda piscava.
+   zerando em 46%, o ponto mais fundo ainda visível projeta a célula
+   com ~86px de espaçamento, bem longe do sub-pixel. */
 .parede.esq{
   left:0;transform-origin:left center;transform:rotateY(90deg);
-  mask-image:linear-gradient(90deg,#000 0 14%,rgba(0,0,0,.5) 34%,transparent 58%);
-  -webkit-mask-image:linear-gradient(90deg,#000 0 14%,rgba(0,0,0,.5) 34%,transparent 58%);
+  mask-image:linear-gradient(90deg,#000 0 12%,rgba(0,0,0,.45) 30%,transparent 46%);
+  -webkit-mask-image:linear-gradient(90deg,#000 0 12%,rgba(0,0,0,.45) 30%,transparent 46%);
 }
 /* SEM scaleX(-1): combinado com o rotateY(-90deg) ele invertia o eixo
    e mandava a parede para FORA da tela, em vez de para o fundo. */
 .parede.dir{
   right:0;transform-origin:right center;transform:rotateY(-90deg);
-  mask-image:linear-gradient(270deg,#000 0 14%,rgba(0,0,0,.5) 34%,transparent 58%);
-  -webkit-mask-image:linear-gradient(270deg,#000 0 14%,rgba(0,0,0,.5) 34%,transparent 58%);
+  mask-image:linear-gradient(270deg,#000 0 12%,rgba(0,0,0,.45) 30%,transparent 46%);
+  -webkit-mask-image:linear-gradient(270deg,#000 0 12%,rgba(0,0,0,.45) 30%,transparent 46%);
 }
 /* a grade corre dentro da parede. o deslocamento é EXATAMENTE uma
    célula (190px), então o laço fecha sem emenda — e anima só transform.
@@ -905,12 +910,18 @@ section{position:relative;z-index:2}
   background:
     repeating-linear-gradient(90deg,transparent 0 188px,rgba(255,255,255,.13) 188px 190px),
     repeating-linear-gradient(0deg, transparent 0 188px,rgba(255,255,255,.13) 188px 190px);
-  animation:correGrade 28s linear infinite;
+  animation:correGrade 17s linear infinite;
   /* camada própria: sem isso o navegador re-rasteriza a grade a cada
      quadro sobre a projeção em perspectiva, e é aí que ela cintila */
   will-change:transform;
 }
-@keyframes correGrade{to{transform:translateX(-190px)}}
+/* DIREÇÃO INVERTIDA: as linhas correm para o fundo do túnel, não em
+   direção a quem olha. sai de -190px e chega a 0, em vez do contrário
+   — assim a parede continua coberta nas duas pontas do laço. */
+@keyframes correGrade{
+  from{transform:translateX(-190px)}
+  to  {transform:translateX(0)}
+}
 
 /* --- TÍTULO que emerge --- */
 .modulos-titulo{
