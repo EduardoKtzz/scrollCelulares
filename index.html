@@ -915,18 +915,24 @@ section{position:relative;z-index:2}
   background:
     repeating-linear-gradient(90deg,transparent 0 188px,rgba(255,255,255,.13) 188px 190px),
     repeating-linear-gradient(0deg, transparent 0 188px,rgba(255,255,255,.13) 188px 190px);
-  animation:correGrade 11s linear infinite;
+  animation:correGrade 7s linear infinite;
   /* camada própria: sem isso o navegador re-rasteriza a grade a cada
      quadro sobre a projeção em perspectiva, e é aí que ela cintila */
   will-change:transform;
 }
-/* DIREÇÃO INVERTIDA: as linhas correm para o fundo do túnel, não em
-   direção a quem olha. sai de -190px e chega a 0, em vez do contrário
-   — assim a parede continua coberta nas duas pontas do laço. */
+/* DIREÇÃO: as linhas correm para o fundo do túnel, não em direção a
+   quem olha. sai de -190px e chega a 0, em vez do contrário — assim a
+   parede continua coberta nas duas pontas do laço. */
 @keyframes correGrade{
   from{transform:translateX(-190px)}
   to  {transform:translateX(0)}
 }
+/* as duas paredes têm o eixo local ESPELHADO pelo rotateY oposto:
+     esquerda → x=0 é a borda perto, x=2000 é o fundo
+     direita  → x=0 é o fundo,      x=2000 é a borda perto
+   com a mesma animação, o mesmo deslocamento levava uma para o fundo e
+   a outra para a frente. inverter a direita alinha as duas. */
+.parede.dir .grade{animation-direction:reverse}
 
 /* --- TÍTULO que emerge --- */
 .modulos-titulo{
