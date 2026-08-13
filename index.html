@@ -667,15 +667,21 @@ a{color:inherit;text-decoration:none}
 .frases{position:absolute;inset:0;z-index:19;pointer-events:none}
 .frase{
   --l:clamp(0, calc((var(--pa) - var(--t)) * 5), 1);
-  /* --sai usa EXATAMENTE a mesma janela de entrada do check
-     (.18 → .43 de --pv): as frases apagam na mesma medida em que ele
-     acende, e no fim sobra a cena limpa só com o check. */
-  --sai:clamp(0, calc((var(--pv) - .18) * 4), 1);
+  /* --sai começa BEM antes do check (.05) e termina junto com ele
+     (.43): a janela fica 52% mais longa que a dele, e é essa folga
+     que tira o corte seco. o fim continua casado com o check, então
+     a cena ainda fecha limpa. */
+  --sai:clamp(0, calc((var(--pv) - .05) * 2.63), 1);
   position:absolute;white-space:nowrap;
   font-size:clamp(30px,4.6vw,72px);
   font-weight:600;letter-spacing:-.045em;line-height:1;
   opacity:calc(var(--l) * (1 - var(--p4)) * (1 - var(--sai)));
-  transform:translateY(calc((1 - var(--l)) * .55em - var(--pa) * var(--dist) * 1em));
+  /* some subindo, em vez de apagar parado — sumiço estático é o que
+     mais denuncia o corte */
+  transform:translateY(calc(
+    (1 - var(--l)) * .55em
+    - var(--pa) * var(--dist) * 1em
+    - var(--sai) * .5em));
 }
 .frase.f1{--t:.20; --dist:2.3; left:5%;  top:44%}
 .frase.f2{--t:.34; --dist:1.4; right:5%; top:62%}
