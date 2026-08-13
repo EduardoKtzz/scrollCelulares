@@ -217,13 +217,14 @@ a{color:inherit;text-decoration:none}
   position:relative;width:100%;height:100%;
   border-radius:14.5%/7.2%;
   padding:2.8%;                 /* trilho metálico + bezel preto */
-  /* titânio, não cromado: os picos de brilho ficam em ~#a9b0b8 em vez
-     de quase branco, e o miolo desce mais — é o contraste alto que
-     fazia a moldura parecer plástico espelhado */
+  /* GRAFITE, não prata. contra fundo preto, uma moldura clara compete
+     com a tela — na referência mal se distingue onde acaba o aparelho
+     e começa o fundo, e é isso que faz o display saltar.
+     picos de 176 para 126; média de 91 para ~45. */
   background:linear-gradient(100deg,
-    #34373b 0%,  #767c84 3.5%, #a9b0b8 6%,  #5f656c 10%,
-    #34373b 17%, #24272a 34%,  #1e2124 50%, #2b2e32 66%,
-    #545a60 82%, #8b929a 89%,  #aab1b9 92%, #52575d 96%, #34373b 100%);
+    #26282c 0%,  #4e545b 3.5%, #767d86 6%,  #3f444a 10%,
+    #26282c 17%, #191b1e 34%,  #141619 50%, #1e2023 66%,
+    #3a3f45 82%, #5f666e 89%,  #797f88 92%, #383c42 96%, #26282c 100%);
   /* sombra ESTÁTICA. antes o raio do desfoque era interpolado com
      --pf, e repintar box-shadow desfocado a cada quadro é das
      operações mais caras que existem. o aro aceso virou um elemento
@@ -272,19 +273,31 @@ a{color:inherit;text-decoration:none}
 /* linhas de antena no trilho de cima */
 /* linhas de antena: num aparelho real são frestas discretas, não
    retângulos claros. mais finas e com metade do contraste */
+/* na referência não se enxerga nenhuma. mais fina e com metade do
+   alpha: fica só como quebra sutil do trilho */
 .antena{
-  position:absolute;top:0;height:.85%;width:1.8%;z-index:3;
-  background:rgba(150,163,178,.3);border-radius:1px;
+  position:absolute;top:0;height:.6%;width:1.6%;z-index:3;
+  background:rgba(150,163,178,.14);border-radius:1px;
 }
 .antena.a1{left:19%}
 .antena.a2{right:19%}
 .screen{
   position:relative;z-index:1;width:100%;height:100%;overflow:hidden;
   border-radius:12.6%/6.2%;
+  /* O DISPLAY TEM QUE PARECER ACESO.
+     antes o topo era #16294a — luminância 39 de 255, azul-marinho
+     quase preto. o aparelho lia como um bloco escuro com brilho
+     externo, não como uma tela ligada. o topo agora sai em 93, e a
+     queda é mais curta (62% em vez de 78%) para a luz se concentrar
+     em cima, como num display de verdade. */
   background:
     /* reflexo de vidro na aresta de cima */
-    linear-gradient(180deg,rgba(255,255,255,.10),transparent 9%),
-    radial-gradient(125% 78% at 50% 0%,#16294a,#0a1020 48%,#04060c 78%);
+    linear-gradient(180deg,rgba(255,255,255,.13),transparent 9%),
+    radial-gradient(130% 62% at 50% -5%,
+      #2f66ad,
+      #1d4278 26%,
+      #0e2040 50%,
+      #050a14 78%);
   /* container APENAS. O font-size em cqw tem que ficar nos filhos:
      cqw usado no próprio container não se enxerga e cai para vw,
      travando a fonte no tamanho da janela em vez da tela do celular. */
@@ -294,10 +307,31 @@ a{color:inherit;text-decoration:none}
    o nome da empresa vive na navbar, não no hardware. */
 .island{
   position:absolute;left:50%;top:2.6cqh;translate:-50% 0;z-index:5;
-  height:3.1cqh;width:27%;border-radius:999px;background:#000;
-  display:flex;align-items:center;justify-content:flex-end;
-  padding:0 1.15em;font-size:3.2cqw;
+  height:3.1cqh;width:40%;border-radius:999px;background:#000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 .5em;font-size:3.2cqw;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+}
+/* ATIVIDADE AO VIVO — a ilha vazia era uma barra preta sem função.
+   com uma OS em curso ela passa a ocupar espaço por um motivo.
+   só aparece no estado gigante: encolhido, o texto seria ilegível e
+   um aparelho real também mostra a ilha fechada. */
+.ilha-live{
+  display:flex;align-items:center;gap:.42em;min-width:0;
+  opacity:calc(1 - var(--p));
+}
+.ilha-ico{
+  width:1.55em;height:1.55em;border-radius:50%;flex:none;
+  background:linear-gradient(150deg,#2c5f9e,#16263f);
+  display:grid;place-items:center;font-size:.62em;
+}
+.ilha-txt{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.ilha-txt i{font-style:normal;font-size:.4em;color:#7e93b3}
+.ilha-txt b{font-size:.52em;font-weight:600;color:#eaf2ff;white-space:nowrap}
+.ilha-ok{
+  width:1.5em;height:1.5em;border-radius:50%;flex:none;
+  background:#16a34a;color:#fff;font-size:.62em;
+  display:grid;place-items:center;
 }
 /* lente da câmera frontal, dentro da ilha */
 .island .cam{
@@ -839,7 +873,14 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
         <span class="antena a2"></span>
 
         <div class="screen">
-          <div class="island"><i class="cam"></i></div>
+          <div class="island">
+            <span class="ilha-live">
+              <span class="ilha-ico">🔧</span>
+              <span class="ilha-txt"><i>OS #2841</i><b>Aparelho pronto</b></span>
+              <span class="ilha-ok">✓</span>
+            </span>
+            <i class="cam"></i>
+          </div>
 
           <div class="statusbar">
             <span>9:41</span>
