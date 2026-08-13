@@ -667,11 +667,11 @@ a{color:inherit;text-decoration:none}
 .frases{position:absolute;inset:0;z-index:19;pointer-events:none}
 .frase{
   --l:clamp(0, calc((var(--pa) - var(--t)) * 5), 1);
-  /* --sai começa BEM antes do check (.05) e termina junto com ele
-     (.43): a janela fica 52% mais longa que a dele, e é essa folga
-     que tira o corte seco. o fim continua casado com o check, então
-     a cena ainda fecha limpa. */
-  --sai:clamp(0, calc((var(--pv) - .05) * 2.63), 1);
+  /* --sai é a expressão IDÊNTICA ao --l da .espiral (.34 → 1 de --pv).
+     as frases apagam ao longo do preenchimento verde, não durante a
+     entrada do check: enquanto ele só aparece, elas seguem inteiras.
+     é a janela mais longa da sequência, o que também mata o corte seco. */
+  --sai:clamp(0, calc((var(--pv) - .34) * 1.52), 1);
   position:absolute;white-space:nowrap;
   font-size:clamp(30px,4.6vw,72px);
   font-weight:600;letter-spacing:-.045em;line-height:1;
