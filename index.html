@@ -880,32 +880,23 @@ section{position:relative;z-index:2}
   overflow:hidden;
   transform-style:preserve-3d;
 }
-/* a máscara desbota a grade conforme ela se afasta. cada parede foge
-   para um lado, então a direção do gradiente é espelhada — a borda
-   PERTO do observador é a que fica opaca. */
-/* a máscara corta o TRECHO DISTANTE, onde as linhas se comprimem até
-   espaçamento sub-pixel e serrilham.
-   ATENÇÃO: a máscara é linear no comprimento da parede, mas a
-   compressão da perspectiva NÃO é. aos 58% que eu usava antes as
-   linhas já estavam adensadas demais — por isso ainda piscava.
-   zerando em 46%, o ponto mais fundo ainda visível projeta a célula
-   com ~86px de espaçamento, bem longe do sub-pixel. */
-/* a máscara desbota nas DUAS pontas.
-   no fundo, pelo serrilhado já explicado. na ENTRADA (os primeiros 5%)
-   porque ali a linha era cortada a seco pelo overflow da parede: uma
-   linha de 2px aparecendo de uma vez lê como pisca. com o desbote ela
-   entra em fade. */
-.parede.esq{
-  left:0;transform-origin:left center;transform:rotateY(90deg);
-  mask-image:linear-gradient(90deg,transparent 0,#000 5% 12%,rgba(0,0,0,.45) 30%,transparent 46%);
-  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 5% 12%,rgba(0,0,0,.45) 30%,transparent 46%);
-}
+/* --ang aponta da borda de PERTO para o fundo. as duas paredes têm o
+   eixo espelhado, então basta virar esse ângulo para todas as máscaras
+   acompanharem, em vez de duplicar cada regra. */
+.parede{--ang:90deg}
+.parede.dir{--ang:270deg}
+/* a máscara da parede desbota nas duas pontas.
+   na ENTRADA (primeiros 5%) porque ali a linha era cortada a seco pelo
+   overflow: uma linha de 2px surgindo inteira lê como pisca.
+   no FUNDO ela agora pode ir bem mais longe (72%, era 46%) — quem
+   cuida do serrilhado lá atrás passou a ser o desfoque. */
+.parede.esq{left:0;transform-origin:left center;transform:rotateY(90deg)}
 /* SEM scaleX(-1): combinado com o rotateY(-90deg) ele invertia o eixo
    e mandava a parede para FORA da tela, em vez de para o fundo. */
-.parede.dir{
-  right:0;transform-origin:right center;transform:rotateY(-90deg);
-  mask-image:linear-gradient(270deg,transparent 0,#000 5% 12%,rgba(0,0,0,.45) 30%,transparent 46%);
-  -webkit-mask-image:linear-gradient(270deg,transparent 0,#000 5% 12%,rgba(0,0,0,.45) 30%,transparent 46%);
+.parede.dir{right:0;transform-origin:right center;transform:rotateY(-90deg)}
+.parede{
+  mask-image:linear-gradient(var(--ang),transparent 0,#000 5% 40%,transparent 72%);
+  -webkit-mask-image:linear-gradient(var(--ang),transparent 0,#000 5% 40%,transparent 72%);
 }
 /* a grade corre dentro da parede. o deslocamento é EXATAMENTE uma
    célula (190px), então o laço fecha sem emenda — e anima só transform.
@@ -936,6 +927,25 @@ section{position:relative;z-index:2}
 }
 .parede.esq .grade{--sentido:1}
 .parede.dir .grade{--sentido:-1}
+
+/* PROFUNDIDADE DE CAMPO — duas camadas da mesma grade com máscaras
+   complementares: a de perto nítida, a do fundo desfocada.
+   o desfoque não é só estética: ele É antisserrilhamento. antes eu
+   precisava cortar o túnel curto para as linhas do fundo não piscarem;
+   borradas, elas podem ir bem mais longe sem cintilar. */
+.grade.perto{
+  mask-image:linear-gradient(var(--ang),#000 0 24%,transparent 46%);
+  -webkit-mask-image:linear-gradient(var(--ang),#000 0 24%,transparent 46%);
+}
+.grade.fundo{
+  filter:blur(2.4px);
+  mask-image:linear-gradient(var(--ang),transparent 20%,#000 44%);
+  -webkit-mask-image:linear-gradient(var(--ang),transparent 20%,#000 44%);
+  /* aqui o will-change compensa: a camada já é borrada, então
+     rasterizar uma vez não custa nitidez — e evita refazer o blur a
+     cada quadro do scroll */
+  will-change:transform;
+}
 
 /* --- TÍTULO que emerge --- */
 .modulos-titulo{
@@ -1275,8 +1285,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 <section class="modulos" id="modulos">
   <div class="modulos-sticky">
     <div class="tunel">
-      <div class="parede esq"><span class="grade"></span></div>
-      <div class="parede dir"><span class="grade"></span></div>
+      <div class="parede esq"><span class="grade fundo"></span><span class="grade perto"></span></div>
+      <div class="parede dir"><span class="grade fundo"></span><span class="grade perto"></span></div>
     </div>
 
     <h2 class="modulos-titulo text-grad">
