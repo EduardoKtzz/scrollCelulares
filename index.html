@@ -880,28 +880,37 @@ section{position:relative;z-index:2}
 /* a máscara desbota a grade conforme ela se afasta. cada parede foge
    para um lado, então a direção do gradiente é espelhada — a borda
    PERTO do observador é a que fica opaca. */
+/* a máscara corta o TRECHO DISTANTE, onde as linhas se comprimem até
+   ficarem com espaçamento sub-pixel e começam a serrilhar. era ela
+   piscando, não a animação. some bem antes disso (opaca só nos
+   primeiros 14%, transparente já em 58%). */
 .parede.esq{
   left:0;transform-origin:left center;transform:rotateY(90deg);
-  mask-image:linear-gradient(90deg,#000 0 28%,transparent 92%);
-  -webkit-mask-image:linear-gradient(90deg,#000 0 28%,transparent 92%);
+  mask-image:linear-gradient(90deg,#000 0 14%,rgba(0,0,0,.5) 34%,transparent 58%);
+  -webkit-mask-image:linear-gradient(90deg,#000 0 14%,rgba(0,0,0,.5) 34%,transparent 58%);
 }
 /* SEM scaleX(-1): combinado com o rotateY(-90deg) ele invertia o eixo
    e mandava a parede para FORA da tela, em vez de para o fundo. */
 .parede.dir{
   right:0;transform-origin:right center;transform:rotateY(-90deg);
-  mask-image:linear-gradient(270deg,#000 0 28%,transparent 92%);
-  -webkit-mask-image:linear-gradient(270deg,#000 0 28%,transparent 92%);
+  mask-image:linear-gradient(270deg,#000 0 14%,rgba(0,0,0,.5) 34%,transparent 58%);
+  -webkit-mask-image:linear-gradient(270deg,#000 0 14%,rgba(0,0,0,.5) 34%,transparent 58%);
 }
 /* a grade corre dentro da parede. o deslocamento é EXATAMENTE uma
-   célula, então o laço fecha sem emenda — e anima só transform. */
+   célula (190px), então o laço fecha sem emenda — e anima só transform.
+   célula maior = linhas mais espaçadas = menos serrilhado ao fundo.
+   28s: na referência elas escorrem devagar, quase imperceptível. */
 .grade{
-  position:absolute;inset:0;width:calc(100% + 130px);
+  position:absolute;inset:0;width:calc(100% + 190px);
   background:
-    repeating-linear-gradient(90deg,transparent 0 128px,rgba(255,255,255,.16) 128px 130px),
-    repeating-linear-gradient(0deg, transparent 0 128px,rgba(255,255,255,.16) 128px 130px);
-  animation:correGrade 9s linear infinite;
+    repeating-linear-gradient(90deg,transparent 0 188px,rgba(255,255,255,.13) 188px 190px),
+    repeating-linear-gradient(0deg, transparent 0 188px,rgba(255,255,255,.13) 188px 190px);
+  animation:correGrade 28s linear infinite;
+  /* camada própria: sem isso o navegador re-rasteriza a grade a cada
+     quadro sobre a projeção em perspectiva, e é aí que ela cintila */
+  will-change:transform;
 }
-@keyframes correGrade{to{transform:translateX(-130px)}}
+@keyframes correGrade{to{transform:translateX(-190px)}}
 
 /* --- TÍTULO que emerge --- */
 .modulos-titulo{
