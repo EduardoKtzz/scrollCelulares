@@ -324,44 +324,53 @@ a{color:inherit;text-decoration:none}
 }
 .ilha-estado{
   position:absolute;inset:0;
-  display:flex;align-items:center;justify-content:center;gap:.5em;
+  display:flex;align-items:center;justify-content:center;
+  /* o texto centra no vão ENTRE o ícone e a câmera, não na pílula
+     inteira. centrado no meio geométrico ele caía 11px à esquerda do
+     centro óptico, porque só há ocupação de um lado. */
+  padding:0 1.6em 0 2.5em;
   opacity:0;
   animation:ilhaCiclo 13s ease-in-out infinite;
 }
-/* EMOJI ANCORADO À ESQUERDA, fora do fluxo — não empurra o texto e
-   não muda de lugar entre as etapas. sem disco em volta: o que fazia
-   ele parecer figurinha era o crachá, não o emoji. no lugar, um halo
-   pulsante na cor da etapa. */
+/* ÍCONE ANCORADO À ESQUERDA, fora do fluxo — não empurra o texto e não
+   muda de lugar entre as etapas.
+   glifo em traço, não emoji: o ✅ é um quadrado verde maciço, pesado
+   demais ao lado de texto fino, e cada emoji tem métrica própria. */
 .ilha-estado i{
-  position:absolute;left:.2em;top:50%;translate:0 -50%;
-  /* caixa de largura FIXA com o emoji centrado dentro. sem isso a
-     caixa se ajusta ao glifo, e como cada emoji tem largura própria
-     o ✅ nascia 8px mais à direita que os outros. */
-  width:1.5em;height:1.5em;
+  position:absolute;left:.3em;top:50%;translate:0 -50%;
+  width:1.55em;height:1.55em;
   display:grid;place-items:center;
-  font-style:normal;font-size:1.05em;line-height:1;
-  animation:emojiEntra 13s ease-out infinite;
+  animation:iconeEntra 13s ease-out infinite;
   animation-delay:inherit;          /* pega o atraso do estado pai */
 }
-/* halo: só scale e opacity, roda no compositor */
+.ilha-estado svg{
+  width:46%;height:46%;
+  fill:none;stroke:var(--cor);stroke-width:2.4;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+/* ANEL DE PROGRESSO girando enquanto a etapa acontece. arco de 26%
+   recortado por máscara — anima só transform, sai de graça. */
 .ilha-estado i::before{
-  content:'';position:absolute;inset:-.45em;border-radius:50%;z-index:-1;
-  background:radial-gradient(circle,var(--cor) 0%,transparent 68%);
-  animation:pulsoHalo 2.2s ease-in-out infinite;
+  content:'';position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(var(--cor) 0 26%, rgba(255,255,255,.11) 26%);
+  mask:radial-gradient(circle,transparent 66%,#000 68%);
+  -webkit-mask:radial-gradient(circle,transparent 66%,#000 68%);
+  animation:girarArco 1.5s linear infinite;
 }
-/* entrada com leve exagero antes de assentar — é o que dá vida sem
-   virar sacudida */
-@keyframes emojiEntra{
-  0%  {scale:.45;rotate:-14deg}
-  4%  {scale:1.14;rotate:5deg}
-  8%  {scale:1;rotate:0deg}
-  100%{scale:1;rotate:0deg}
+@keyframes girarArco{to{transform:rotate(360deg)}}
+/* concluídas: anel inteiro e parado. a diferença entre "acontecendo" e
+   "pronto" é lida antes mesmo do texto. */
+.ilha-estado.e3 i::before,.ilha-estado.e4 i::before{
+  background:var(--cor);
+  animation:none;
 }
-@keyframes pulsoHalo{
-  0%,100%{scale:.8;opacity:.18}
-  50%    {scale:1.15;opacity:.42}
+/* entrada com leve exagero antes de assentar */
+@keyframes iconeEntra{
+  0%  {scale:.5}
+  4%  {scale:1.12}
+  8%  {scale:1}
+  100%{scale:1}
 }
-/* o texto ocupa o centro da ilha, sem o ícone puxando para o lado */
 .ilha-estado b{
   font-size:.75em;font-weight:600;color:#f2f7ff;
   white-space:nowrap;letter-spacing:-.015em;
@@ -875,10 +884,11 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
      nada a desligar aqui além do movimento das peças */
   /* .coin é quem gira — .orb sozinho não cobre o movimento */
   .orb,.coin{animation:none}
-  /* a ilha para de ciclar e fica no primeiro estado, sem halo pulsando */
+  /* a ilha para de ciclar e fica no primeiro estado, sem o anel girando */
   .ilha-estado{animation:none;opacity:0}
   .ilha-estado.e1{opacity:1}
   .ilha-estado i,.ilha-estado i::before{animation:none}
+  .ilha-estado i::before{background:var(--cor)}
 }
 </style>
 </head>
@@ -930,10 +940,23 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
         <div class="screen">
           <div class="island">
             <span class="ilha-live">
-              <span class="ilha-estado e1"><i>⚠️</i><b>Defeito</b></span>
-              <span class="ilha-estado e2"><i>🔧</i><b>Conserto</b></span>
-              <span class="ilha-estado e3"><i>✅</i><b>Resolvido</b></span>
-              <span class="ilha-estado e4"><i>📦</i><b>Aparelho Entregue!</b></span>
+              <span class="ilha-estado e1"><i>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><!-- alerta -->
+                  <path d="M12 3.8 21.8 20.2H2.2Z"/><path d="M12 10.2v3.6"/><path d="M12 17v.1"/>
+                </svg></i><b>Defeito</b></span>
+              <span class="ilha-estado e2"><i>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><!-- chave -->
+                  <path d="M21.4 6.4 17.9 9.9 14.1 6.1l3.5-3.5a6 6 0 0 0-7.5 7.3l-7.9 7.9a2 2 0 0 0 2.8 2.8l7.9-7.9a6 6 0 0 0 8.5-6.3z"/>
+                </svg></i><b>Conserto</b></span>
+              <span class="ilha-estado e3"><i>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><!-- check -->
+                  <path d="M5.2 12.6 10 17.4 19.2 7.2"/>
+                </svg></i><b>Resolvido</b></span>
+              <span class="ilha-estado e4"><i>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><!-- caixa -->
+                  <path d="M3.6 7.5 12 3.4l8.4 4.1v9L12 20.6l-8.4-4.1z"/>
+                  <path d="M3.6 7.5 12 11.6l8.4-4.1M12 11.6v9"/>
+                </svg></i><b>Aparelho Entregue!</b></span>
             </span>
             <i class="cam"></i>
           </div>
