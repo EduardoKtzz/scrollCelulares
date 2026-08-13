@@ -876,12 +876,22 @@ section{position:relative;z-index:2}
   position:absolute;top:-60%;height:220%;width:2600px;
   overflow:hidden;
   transform-style:preserve-3d;
-  /* desbota conforme se afasta, senão a grade fica dura no fundo */
-  mask-image:linear-gradient(90deg,#000 0 30%,transparent 92%);
-  -webkit-mask-image:linear-gradient(90deg,#000 0 30%,transparent 92%);
 }
-.parede.esq{left:0; transform-origin:left center; transform:rotateY(90deg)}
-.parede.dir{right:0;transform-origin:right center;transform:rotateY(-90deg) scaleX(-1)}
+/* a máscara desbota a grade conforme ela se afasta. cada parede foge
+   para um lado, então a direção do gradiente é espelhada — a borda
+   PERTO do observador é a que fica opaca. */
+.parede.esq{
+  left:0;transform-origin:left center;transform:rotateY(90deg);
+  mask-image:linear-gradient(90deg,#000 0 28%,transparent 92%);
+  -webkit-mask-image:linear-gradient(90deg,#000 0 28%,transparent 92%);
+}
+/* SEM scaleX(-1): combinado com o rotateY(-90deg) ele invertia o eixo
+   e mandava a parede para FORA da tela, em vez de para o fundo. */
+.parede.dir{
+  right:0;transform-origin:right center;transform:rotateY(-90deg);
+  mask-image:linear-gradient(270deg,#000 0 28%,transparent 92%);
+  -webkit-mask-image:linear-gradient(270deg,#000 0 28%,transparent 92%);
+}
 /* a grade corre dentro da parede. o deslocamento é EXATAMENTE uma
    célula, então o laço fecha sem emenda — e anima só transform. */
 .grade{
@@ -929,13 +939,18 @@ section{position:relative;z-index:2}
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.16),
     0 30px 60px rgba(0,0,0,.65);
-  /* preserve-3d faz o próprio translateZ ordenar a profundidade —
-     sem z-index, sem JS decidindo quem fica na frente */
+  /* OS CARDS VÊM DE TRÁS, não do lado. o eixo dominante é o Z: cada
+     passo de distância empurra 300px para o fundo, enquanto o X só
+     desloca 145px. antes era o contrário (290px de X contra quase nada
+     de profundidade) e por isso eles deslizavam lateralmente.
+     preserve-3d faz o próprio translateZ ordenar quem fica na frente —
+     sem z-index, sem JS decidindo. */
   transform:
     translate(-50%,-50%)
-    rotateY(calc(var(--delta) * -24deg))
-    translateX(calc(var(--delta) * 290px))
-    translateZ(calc(var(--foco) * 200px - 70px));
+    translateX(calc(var(--delta) * 145px))
+    translateY(calc(var(--dist) * 24px))
+    translateZ(calc(var(--dist) * -300px))
+    rotateY(calc(var(--delta) * -11deg));
   filter:blur(calc((1 - var(--foco)) * 4.5px));
   opacity:calc(.32 + .68 * var(--foco));
 }
@@ -956,12 +971,15 @@ section{position:relative;z-index:2}
 .carta p{font-size:.95em;line-height:1.5;color:rgba(255,255,255,.62)}
 
 @media(max-width:900px){
-  .carta{width:min(260px,78vw)}
-  .carta{transform:
-    translate(-50%,-50%)
-    rotateY(calc(var(--delta) * -18deg))
-    translateX(calc(var(--delta) * 200px))
-    translateZ(calc(var(--foco) * 140px - 50px));}
+  .carta{
+    width:min(260px,78vw);
+    transform:
+      translate(-50%,-50%)
+      translateX(calc(var(--delta) * 95px))
+      translateY(calc(var(--dist) * 18px))
+      translateZ(calc(var(--dist) * -220px))
+      rotateY(calc(var(--delta) * -9deg));
+  }
 }
 @media(prefers-reduced-motion:reduce){.grade{animation:none}}
 
