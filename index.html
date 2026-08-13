@@ -873,12 +873,12 @@ section{position:relative;z-index:2}
   perspective:760px;perspective-origin:50% 50%;
   pointer-events:none;
 }
-/* 2000px de profundidade (era 2600): quanto mais longa a parede, mais
-   comprimido o fundo — e é lá que as linhas serrilham.
-   170% de altura (era 220%): a área da parede entra no custo de
-   composição, e o excedente não aparecia em tela nenhuma. */
+/* a ÁREA da parede é o custo por quadro: ela é composta fora da tela,
+   mascarada e depois projetada em 3D, tudo isso a cada rolagem.
+   1500 x 130% = 1,8 M px, contra os 3,1 M de antes. o excedente não
+   aparecia em tela nenhuma. */
 .parede{
-  position:absolute;top:-35%;height:170%;width:2000px;
+  position:absolute;top:-15%;height:130%;width:1500px;
   overflow:hidden;
   transform-style:preserve-3d;
 }
@@ -927,31 +927,19 @@ section{position:relative;z-index:2}
 .parede.esq .grade{--sentido:1}
 .parede.dir .grade{--sentido:-1}
 
-/* PROFUNDIDADE DE CAMPO — duas camadas da mesma grade com máscaras
-   complementares: nítida perto, macia no fundo.
+/* UMA camada só, com a linha de borda macia.
+   eram duas camadas com uma máscara cada, mais a máscara da parede:
+   6 operações de máscara por quadro, sobre superfícies de milhões de
+   pixels. cada máscara obriga a compor fora da tela antes de projetar.
 
-   A maciez vem da PRÓPRIA LINHA, não de filter:blur. O filtro estava
-   sendo aplicado num elemento de ~2380x2000px, duas vezes (uma por
-   parede), e borrar essa superfície a cada quadro travava a rolagem.
-   Uma linha com borda em degradê custa o mesmo que uma linha dura, e
-   sob a compressão da perspectiva se funde num véu — que é o efeito
-   procurado.
-
-   As duas camadas centram a linha em 95px do período de 190px, então
-   elas coincidem na faixa em que se cruzam. */
-.grade.perto{
+   a profundidade de campo sai de graça da perspectiva: a linha tem
+   ~24px de borda em degradê, e conforme ela se comprime ao fundo essa
+   borda passa a dominar o traço, virando um véu. perto, a mesma borda
+   é pequena diante da linha e ela lê nítida. */
+.grade{
   background:
-    repeating-linear-gradient(90deg,transparent 0 94px,rgba(255,255,255,.2) 94px 96px,transparent 96px 190px),
-    repeating-linear-gradient(0deg, transparent 0 94px,rgba(255,255,255,.2) 94px 96px,transparent 96px 190px);
-  mask-image:linear-gradient(var(--ang),#000 0 22%,transparent 44%);
-  -webkit-mask-image:linear-gradient(var(--ang),#000 0 22%,transparent 44%);
-}
-.grade.fundo{
-  background:
-    repeating-linear-gradient(90deg,transparent 0 83px,rgba(255,255,255,.035) 88px,rgba(255,255,255,.14) 95px,rgba(255,255,255,.035) 102px,transparent 107px 190px),
-    repeating-linear-gradient(0deg, transparent 0 83px,rgba(255,255,255,.035) 88px,rgba(255,255,255,.14) 95px,rgba(255,255,255,.035) 102px,transparent 107px 190px);
-  mask-image:linear-gradient(var(--ang),transparent 18%,#000 42%);
-  -webkit-mask-image:linear-gradient(var(--ang),transparent 18%,#000 42%);
+    repeating-linear-gradient(90deg,transparent 0 83px,rgba(255,255,255,.04) 88px,rgba(255,255,255,.2) 95px,rgba(255,255,255,.04) 102px,transparent 107px 190px),
+    repeating-linear-gradient(0deg, transparent 0 83px,rgba(255,255,255,.04) 88px,rgba(255,255,255,.2) 95px,rgba(255,255,255,.04) 102px,transparent 107px 190px);
 }
 
 /* --- TÍTULO que emerge --- */
@@ -1292,8 +1280,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 <section class="modulos" id="modulos">
   <div class="modulos-sticky">
     <div class="tunel">
-      <div class="parede esq"><span class="grade fundo"></span><span class="grade perto"></span></div>
-      <div class="parede dir"><span class="grade fundo"></span><span class="grade perto"></span></div>
+      <div class="parede esq"><span class="grade"></span></div>
+      <div class="parede dir"><span class="grade"></span></div>
     </div>
 
     <h2 class="modulos-titulo text-grad">
@@ -1525,6 +1513,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
      progresso próprio, independente do hero. --pc vai de 0 a 1 e cada
      card calcula sozinho a distância até o foco (ver .carta no CSS). */
   const modulos = document.getElementById('modulos');
+  const tunelEl = document.querySelector('.tunel');
+  let tunelAnterior = null;
   function atualizaModulos(){
     if(!modulos) return;
     const alvo = modulos.offsetHeight - window.innerHeight;
@@ -1536,8 +1526,16 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     /* AVANÇO DO TÚNEL — amarrado ao scroll, não ao relógio.
        o resto (% 190) é o período exato da grade, então o valor volta
        a zero sem emenda e o avanço é infinito. o fator 1.6 é a marcha:
-       maior = mais túnel percorrido por pixel rolado. */
-    def('--tunel', ((window.scrollY * 1.6) % 190).toFixed(1));
+       maior = mais túnel percorrido por pixel rolado.
+
+       escrito no .tunel e NÃO na raiz: este valor muda a cada quadro de
+       rolagem, e na raiz obrigaria a revalidar o estilo do documento
+       inteiro. as variáveis herdam, então as grades recebem igual. */
+    const av = ((window.scrollY * 1.6) % 190).toFixed(1);
+    if(tunelAnterior !== av){
+      tunelAnterior = av;
+      tunelEl && tunelEl.style.setProperty('--tunel', av);
+    }
     /* o título emerge no começo e some quando os cards assumem */
     def('--mt', (ease(range(m,.02,.16)) * (1 - ease(range(m,.22,.34)))).toFixed(4));
   }
