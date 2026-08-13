@@ -61,8 +61,9 @@
      var(--pc) é inválido, o que invalida --delta → --dist → --foco e
      derruba o transform inteiro dos cards — todos empilham no mesmo
      ponto até o JS escrever a variável pela primeira vez. */
-  --pc:0;   /* carrossel: qual card está em foco    */
-  --mt:0;   /* título da seção emerge              */
+  --pc:0;    /* carrossel: qual card está em foco    */
+  --mt:0;    /* título da seção emerge              */
+  --tunel:0; /* avanço da grade do túnel, em px     */
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -910,29 +911,26 @@ section{position:relative;z-index:2}
    célula (190px), então o laço fecha sem emenda — e anima só transform.
    célula maior = linhas mais espaçadas = menos serrilhado ao fundo.
    28s: na referência elas escorrem devagar, quase imperceptível. */
+/* A GRADE É MOVIDA PELO SCROLL, não por cronômetro.
+   com animação por tempo ela é movimento ambiente: continua igual quer
+   você role ou não, e o sentido não tem relação com o gesto. amarrada
+   ao scroll, rolar para baixo AVANÇA pelo túnel — é o que dá a sensação
+   de estar descendo. e como o Lenis suaviza a rolagem, ela desacelera
+   junto quando você para, em vez de travar seco.
+
+   SEM will-change aqui: promovida a camada própria, a grade era
+   rasterizada uma vez e depois esticada pela projeção — daí o
+   embaçado. sem a promoção o navegador redesenha na resolução certa. */
 .grade{
   position:absolute;inset:0;width:calc(100% + 190px);
   background:
-    repeating-linear-gradient(90deg,transparent 0 188px,rgba(255,255,255,.13) 188px 190px),
-    repeating-linear-gradient(0deg, transparent 0 188px,rgba(255,255,255,.13) 188px 190px);
-  animation:correGrade 7s linear infinite;
-  /* camada própria: sem isso o navegador re-rasteriza a grade a cada
-     quadro sobre a projeção em perspectiva, e é aí que ela cintila */
-  will-change:transform;
+    repeating-linear-gradient(90deg,transparent 0 188px,rgba(255,255,255,.19) 188px 190px),
+    repeating-linear-gradient(0deg, transparent 0 188px,rgba(255,255,255,.19) 188px 190px);
+  /* --sentido compensa o eixo local espelhado das duas paredes */
+  transform:translateX(calc(var(--tunel,0) * var(--sentido,1) * 1px));
 }
-/* DIREÇÃO: as linhas correm para o fundo do túnel, não em direção a
-   quem olha. sai de -190px e chega a 0, em vez do contrário — assim a
-   parede continua coberta nas duas pontas do laço. */
-@keyframes correGrade{
-  from{transform:translateX(-190px)}
-  to  {transform:translateX(0)}
-}
-/* as duas paredes têm o eixo local ESPELHADO pelo rotateY oposto:
-     esquerda → x=0 é a borda perto, x=2000 é o fundo
-     direita  → x=0 é o fundo,      x=2000 é a borda perto
-   com a mesma animação, o mesmo deslocamento levava uma para o fundo e
-   a outra para a frente. inverter a direita alinha as duas. */
-.parede.dir .grade{animation-direction:reverse}
+.parede.esq .grade{--sentido:1}
+.parede.dir .grade{--sentido:-1}
 
 /* --- TÍTULO que emerge --- */
 .modulos-titulo{
@@ -1012,7 +1010,8 @@ section{position:relative;z-index:2}
       rotateY(calc(var(--delta) * -9deg));
   }
 }
-@media(prefers-reduced-motion:reduce){.grade{animation:none}}
+/* a grade não tem mais animação de tempo — ela só se move quando a
+   pessoa rola, então não há o que desligar aqui */
 
 .features{padding:clamp(70px,11vw,140px) 0}
 .sec-head{text-align:center;max-width:680px;margin:0 auto clamp(40px,6vw,70px)}
@@ -1512,6 +1511,11 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     /* margens de 12% nas pontas: o primeiro card já chega em foco e o
        último não sai antes da seção acabar */
     def('--pc', range(m,.12,.88).toFixed(4));
+    /* AVANÇO DO TÚNEL — amarrado ao scroll, não ao relógio.
+       o resto (% 190) é o período exato da grade, então o valor volta
+       a zero sem emenda e o avanço é infinito. o fator 1.6 é a marcha:
+       maior = mais túnel percorrido por pixel rolado. */
+    def('--tunel', ((window.scrollY * 1.6) % 190).toFixed(1));
     /* o título emerge no começo e some quando os cards assumem */
     def('--mt', (ease(range(m,.02,.16)) * (1 - ease(range(m,.22,.34)))).toFixed(4));
   }
