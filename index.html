@@ -1002,6 +1002,25 @@ section{position:relative;z-index:2}
     rotateY(calc(var(--delta) * -11deg));
   filter:blur(calc((1 - var(--foco)) * 4.5px));
   opacity:calc(.32 + .68 * var(--foco));
+
+  /* FLUTUAÇÃO PRÓPRIA — os cards respiram mesmo com o scroll parado.
+     usa translate e rotate INDIVIDUAIS, não transform: o carrossel já
+     ocupa o transform, e as propriedades separadas compõem com ele
+     (a ordem é translate → rotate → scale → transform) em vez de
+     sobrescrever. */
+  animation-name:flutua;
+  animation-duration:var(--fdur,7s);
+  animation-delay:var(--fdel,0s);
+  animation-timing-function:ease-in-out;
+  animation-iteration-count:infinite;
+}
+/* períodos primos entre si: o trio nunca volta a sincronizar */
+.carta:nth-child(1){--fdur:7s;  --fdel:0s}
+.carta:nth-child(2){--fdur:8.6s;--fdel:-2.4s}
+.carta:nth-child(3){--fdur:6.4s;--fdel:-4.1s}
+@keyframes flutua{
+  0%,100%{translate:0 0;      rotate:0deg}
+  50%    {translate:0 -14px;  rotate:.7deg}
 }
 .carta-ico{
   width:5em;height:5em;border-radius:1.4em;margin-bottom:auto;
@@ -1082,6 +1101,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   .ilha-estado.e1{opacity:1}
   .ilha-estado i,.ilha-estado i::before{animation:none}
   .ilha-estado i::before{background:var(--cor)}
+  .carta{animation:none}
 }
 </style>
 </head>
