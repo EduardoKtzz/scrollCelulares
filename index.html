@@ -922,7 +922,12 @@ section{position:relative;z-index:2}
    rasterizada uma vez e depois esticada pela projeção — daí o
    embaçado. sem a promoção o navegador redesenha na resolução certa. */
 .grade{
-  position:absolute;inset:0;width:calc(100% + 190px);
+  /* sobra de uma célula nos DOIS lados. com sobra só à direita, a
+     parede esquerda (que desliza para +x) descobria a borda de perto —
+     bem onde a máscara é opaca e a perspectiva é maior. a direita não
+     mostrava o defeito porque desliza para o outro lado e a sobra
+     descoberta caía fora da parede. */
+  position:absolute;inset:0;left:-190px;width:calc(100% + 380px);
   background:
     repeating-linear-gradient(90deg,transparent 0 188px,rgba(255,255,255,.19) 188px 190px),
     repeating-linear-gradient(0deg, transparent 0 188px,rgba(255,255,255,.19) 188px 190px);
