@@ -870,15 +870,25 @@ section{position:relative;z-index:2}
    elas fogem para o fundo e as linhas convergem no ponto de fuga. */
 .tunel{
   position:absolute;inset:0;
-  perspective:760px;perspective-origin:50% 50%;
+  perspective:820px;perspective-origin:50% 50%;
   pointer-events:none;
 }
-/* a ÁREA da parede é o custo por quadro: ela é composta fora da tela,
-   mascarada e depois projetada em 3D, tudo isso a cada rolagem.
-   1500 x 130% = 1,8 M px, contra os 3,1 M de antes. o excedente não
-   aparecia em tela nenhuma. */
+/* A parede é um TRAPÉZIO na projeção: mantém a altura na borda de perto
+   e converge para o ponto de fuga conforme se afasta. Para o fundo dela
+   ainda alcançar o topo e a base da tela, a altura precisa compensar
+   essa convergência:
+
+     altura >= viewport x (perspectiva + profundidade_visivel) / perspectiva
+
+   com perspectiva 820 e fundo visível em 858px, dá 2,05x — 240% deixa
+   margem. a 130% que eu tinha usado, o trapézio fechava antes das
+   bordas e a parte de baixo ficava preta.
+
+   A profundidade caiu de 1500 para 1100px para compensar a altura maior:
+   o custo por quadro é a ÁREA, e ela é composta fora da tela, mascarada
+   e projetada a cada rolagem. */
 .parede{
-  position:absolute;top:-15%;height:130%;width:1500px;
+  position:absolute;top:-70%;height:240%;width:1100px;
   overflow:hidden;
   transform-style:preserve-3d;
 }
@@ -897,8 +907,8 @@ section{position:relative;z-index:2}
    e mandava a parede para FORA da tela, em vez de para o fundo. */
 .parede.dir{right:0;transform-origin:right center;transform:rotateY(-90deg)}
 .parede{
-  mask-image:linear-gradient(var(--ang),transparent 0,#000 5% 40%,transparent 72%);
-  -webkit-mask-image:linear-gradient(var(--ang),transparent 0,#000 5% 40%,transparent 72%);
+  mask-image:linear-gradient(var(--ang),transparent 0,#000 5% 44%,transparent 78%);
+  -webkit-mask-image:linear-gradient(var(--ang),transparent 0,#000 5% 44%,transparent 78%);
 }
 /* a grade corre dentro da parede. o deslocamento é EXATAMENTE uma
    célula (190px), então o laço fecha sem emenda — e anima só transform.
