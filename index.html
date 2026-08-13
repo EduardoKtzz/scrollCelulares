@@ -130,10 +130,11 @@ a{color:inherit;text-decoration:none}
      21 painel de avaliação · 24 título final
    (o texto do hero fica DENTRO da .screen, não neste empilhamento)
    ============================================================ */
-/* 790vh: as fases são frações desta altura, então mudar aqui acelera
-   ou desacelera a sequência inteira mantendo as proporções.
-   subiu de 700 para abrir espaço ao fecho verde sem espremer o resto. */
-.hero{position:relative;height:790vh}
+/* 620vh (era 790). encurtar sozinho aceleraria TUDO, inclusive a
+   abertura, que já estava boa — por isso as frações da fase inicial
+   foram alargadas na mesma medida, mantendo a distância absoluta dela
+   e comprimindo só o que vem depois. ver AGENDA DAS FASES no script. */
+.hero{position:relative;height:620vh}
 .hero-sticky{position:sticky;top:0;height:100vh;overflow:hidden}
 
 /* z-index 5: acima do brilho e das peças de trás, abaixo das da frente —
@@ -1207,16 +1208,21 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
        tela apaga. cruzando, a soma nunca chega perto de zero — e nenhum
        dos dois fica legível enquanto o outro está visível.
 
-         fase              faixa
-         celular encolhe   0    → .15
-         texto some        .04  → .13
-         peças sobem       0    → .18
-         CONVERSA+FRASES   .09  → .46      escalonadas juntas
-         foco no celular   .10  → .26      junto com a conversa
-         painel (entra)    .50  → .58
-         painel (sai)      .61  → .66      saída curta
-         FECHO VERDE       .66  → .86
-         título final      .88  → .98
+       o hero encurtou de 790vh para 620vh, mas a ABERTURA não podia
+       acelerar junto. por isso as frações iniciais foram alargadas na
+       mesma medida: o encolhimento continua ocupando ~104vh de rolagem
+       real, e só o que vem depois comprimiu (~25%).
+
+         fase              faixa        distância
+         celular encolhe   0    → .20    104vh   (era .15 de 690 = 103vh)
+         texto some        .05  → .17
+         peças sobem       0    → .24
+         CONVERSA+FRASES   .12  → .52    208vh   (era 255vh)
+         foco no celular   .13  → .32
+         painel (entra)    .56  → .64
+         painel (sai)      .67  → .72    saída curta
+         FECHO VERDE       .72  → .90     94vh   (era 138vh)
+         título final      .91  → 1       47vh   (era 69vh)
 
        dentro de --pa tudo se escalona sozinho, pelo --t de cada
        elemento (ver os blocos "A CONVERSA" e "FRASES" no CSS):
@@ -1230,9 +1236,9 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
          .00 → .25  o chat sai
          .18 → .43  o check entra
          .34 → 1    a espiral preenche a tela                          */
-    const pt = ease(range(p,.04,.13));
-    const p4 = ease(range(p,.88,.98));
-    const pEncolhe = ease(range(p,0,.15));
+    const pt = ease(range(p,.05,.17));
+    const p4 = ease(range(p,.91,1));
+    const pEncolhe = ease(range(p,0,.20));
 
     def('--p', pEncolhe.toFixed(4));
     /* escala e deslocamento do celular: substituem a antiga animação
@@ -1243,26 +1249,23 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     /* a conversa NÃO usa easing: cada rolada de roda tem que empurrar
        a construção na mesma proporção, senão os balões chegam em
        rajadas irregulares */
-    def('--pa', range(p,.09,.46).toFixed(4));
+    def('--pa', range(p,.12,.52).toFixed(4));
     /* SEM easing também: parallax tem que responder direto ao giro da
-       roda. as peças somem em .18 e --po fica travado em 1 depois
+       roda. as peças somem em .24 e --po fica travado em 1 depois
        disso — nenhuma volta a aparecer. */
-    def('--po', range(p,0,.18).toFixed(4));
+    def('--po', range(p,0,.24).toFixed(4));
     /* a luz migra do topo para o aro JUNTO com a troca de conteúdo:
-       o texto branco sai (.13) e a conversa entra (.09) — é nesse
+       o texto branco sai (.17) e a conversa entra (.12) — é nesse
        momento que o celular precisa assumir o foco, não depois. */
-    def('--pf', ease(range(p,.10,.26)).toFixed(4));
-    /* PULSO: sobe, segura entre .60 e .66, e volta a zero. o painel
-       tem um scrim de tela cheia — ele precisa sair antes das frases,
-       senão apagaria todas elas. */
-    /* saída curta e logo após a pausa: antes o card segurava até .66 e
-       levava mais 8% para sumir, e esses 60vh de espera é que davam a
-       sensação de demora até a cena limpa aparecer. */
-    const pp = ease(range(p,.50,.58)) - ease(range(p,.61,.66));
+    def('--pf', ease(range(p,.13,.32)).toFixed(4));
+    /* PULSO: sobe, segura, e volta a zero. o painel tem um scrim de
+       tela cheia — precisa sair antes do fecho verde, senão apagaria
+       o check e a espiral. saída curta, logo após a pausa. */
+    const pp = ease(range(p,.56,.64)) - ease(range(p,.67,.72));
     def('--pp', pp.toFixed(4));
     /* fecho verde SEM easing: a varredura da espiral precisa acompanhar
        a roda de forma linear, senão acelera e freia no meio do giro */
-    def('--pv', range(p,.66,.86).toFixed(4));
+    def('--pv', range(p,.72,.90).toFixed(4));
     def('--p4', p4.toFixed(4));
 
     /* botões invisíveis não podem receber clique */
