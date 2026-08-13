@@ -328,38 +328,44 @@ a{color:inherit;text-decoration:none}
   opacity:0;
   animation:ilhaCiclo 13s ease-in-out infinite;
 }
-/* SEM EMOJI. emoji tem estilo próprio — multicolorido, com contorno —
-   que briga com qualquer interface; dentro da ilha lê como figurinha
-   colada, por mais que se trabalhe o entorno. glifo em traço, no mesmo
-   desenho dos outros ícones do site. */
+/* EMOJI ANCORADO À ESQUERDA, fora do fluxo — não empurra o texto e
+   não muda de lugar entre as etapas. sem disco em volta: o que fazia
+   ele parecer figurinha era o crachá, não o emoji. no lugar, um halo
+   pulsante na cor da etapa. */
 .ilha-estado i{
-  position:relative;flex:none;
-  width:2.2em;height:2.2em;font-size:.62em;
+  position:absolute;left:.2em;top:50%;translate:0 -50%;
+  /* caixa de largura FIXA com o emoji centrado dentro. sem isso a
+     caixa se ajusta ao glifo, e como cada emoji tem largura própria
+     o ✅ nascia 8px mais à direita que os outros. */
+  width:1.5em;height:1.5em;
   display:grid;place-items:center;
+  font-style:normal;font-size:1.05em;line-height:1;
+  animation:emojiEntra 13s ease-out infinite;
+  animation-delay:inherit;          /* pega o atraso do estado pai */
 }
-.ilha-estado svg{
-  width:52%;height:52%;
-  fill:none;stroke:var(--cor);stroke-width:2.2;
-  stroke-linecap:round;stroke-linejoin:round;
-}
-/* ANEL DE PROGRESSO: gira enquanto a etapa está em andamento.
-   um arco de 26% recortado por máscara — só transform anima, então
-   sai de graça no compositor. */
+/* halo: só scale e opacity, roda no compositor */
 .ilha-estado i::before{
-  content:'';position:absolute;inset:0;border-radius:50%;
-  background:conic-gradient(var(--cor) 0 26%, rgba(255,255,255,.12) 26%);
-  mask:radial-gradient(circle,transparent 64%,#000 66%);
-  -webkit-mask:radial-gradient(circle,transparent 64%,#000 66%);
-  animation:girarArco 1.5s linear infinite;
+  content:'';position:absolute;inset:-.45em;border-radius:50%;z-index:-1;
+  background:radial-gradient(circle,var(--cor) 0%,transparent 68%);
+  animation:pulsoHalo 2.2s ease-in-out infinite;
 }
-@keyframes girarArco{to{transform:rotate(360deg)}}
-/* etapas concluídas: anel inteiro e parado — é a diferença entre
-   "acontecendo" e "pronto", lida antes mesmo do texto */
-.ilha-estado.e3 i::before,.ilha-estado.e4 i::before{
-  background:var(--cor);
-  animation:none;
+/* entrada com leve exagero antes de assentar — é o que dá vida sem
+   virar sacudida */
+@keyframes emojiEntra{
+  0%  {scale:.45;rotate:-14deg}
+  4%  {scale:1.14;rotate:5deg}
+  8%  {scale:1;rotate:0deg}
+  100%{scale:1;rotate:0deg}
 }
-.ilha-estado b{font-size:.6em;font-weight:600;color:#eaf2ff;white-space:nowrap;letter-spacing:-.01em}
+@keyframes pulsoHalo{
+  0%,100%{scale:.8;opacity:.18}
+  50%    {scale:1.15;opacity:.42}
+}
+/* o texto ocupa o centro da ilha, sem o ícone puxando para o lado */
+.ilha-estado b{
+  font-size:.75em;font-weight:600;color:#f2f7ff;
+  white-space:nowrap;letter-spacing:-.015em;
+}
 .ilha-estado.e1{--cor:#f59e0b}
 .ilha-estado.e2{--cor:#3b82f6}
 .ilha-estado.e3{--cor:#22c55e}
@@ -869,10 +875,10 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
      nada a desligar aqui além do movimento das peças */
   /* .coin é quem gira — .orb sozinho não cobre o movimento */
   .orb,.coin{animation:none}
-  /* a ilha para de ciclar e fica no primeiro estado, sem o anel girando */
+  /* a ilha para de ciclar e fica no primeiro estado, sem halo pulsando */
   .ilha-estado{animation:none;opacity:0}
   .ilha-estado.e1{opacity:1}
-  .ilha-estado i::before{animation:none}
+  .ilha-estado i,.ilha-estado i::before{animation:none}
 }
 </style>
 </head>
@@ -924,27 +930,10 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
         <div class="screen">
           <div class="island">
             <span class="ilha-live">
-              <span class="ilha-estado e1">
-                <i><svg viewBox="0 0 24 24" aria-hidden="true"><!-- alerta -->
-                  <path d="M12 3.6 22 20.4H2Z"/><path d="M12 10v4"/><path d="M12 17.2v.1"/>
-                </svg></i><b>Defeito</b>
-              </span>
-              <span class="ilha-estado e2">
-                <i><svg viewBox="0 0 24 24" aria-hidden="true"><!-- chave -->
-                  <path d="M21.6 6.2 18 9.8l-3.8-3.8 3.6-3.6a6 6 0 0 0-7.6 7.4l-8 8a2 2 0 0 0 2.8 2.8l8-8a6 6 0 0 0 8.6-6.4z"/>
-                </svg></i><b>Conserto</b>
-              </span>
-              <span class="ilha-estado e3">
-                <i><svg viewBox="0 0 24 24" aria-hidden="true"><!-- check -->
-                  <path d="M5 12.8 10 17.6 19.4 7"/>
-                </svg></i><b>Resolvido</b>
-              </span>
-              <span class="ilha-estado e4">
-                <i><svg viewBox="0 0 24 24" aria-hidden="true"><!-- caixa -->
-                  <path d="M3.4 7.4 12 3.2l8.6 4.2v9.2L12 20.8l-8.6-4.2z"/>
-                  <path d="M3.4 7.4 12 11.6l8.6-4.2M12 11.6v9.2"/>
-                </svg></i><b>Aparelho Entregue!</b>
-              </span>
+              <span class="ilha-estado e1"><i>⚠️</i><b>Defeito</b></span>
+              <span class="ilha-estado e2"><i>🔧</i><b>Conserto</b></span>
+              <span class="ilha-estado e3"><i>✅</i><b>Resolvido</b></span>
+              <span class="ilha-estado e4"><i>📦</i><b>Aparelho Entregue!</b></span>
             </span>
             <i class="cam"></i>
           </div>
