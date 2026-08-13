@@ -56,6 +56,13 @@
   /* as frases grandes não têm variável própria: usam --pa, para
      nascerem junto com os balões da conversa */
   --p4:0;   /* tudo sai + título final entra       */
+
+  /* seção dos módulos. estes padrões são OBRIGATÓRIOS: sem eles
+     var(--pc) é inválido, o que invalida --delta → --dist → --foco e
+     derruba o transform inteiro dos cards — todos empilham no mesmo
+     ponto até o JS escrever a variável pela primeira vez. */
+  --pc:0;   /* carrossel: qual card está em foco    */
+  --mt:0;   /* título da seção emerge              */
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -847,6 +854,117 @@ section{position:relative;z-index:2}
 .strip .container{display:flex;align-items:center;justify-content:center;gap:clamp(24px,5vw,64px);flex-wrap:wrap}
 .strip span{color:#57575c;font-weight:700;font-size:clamp(14px,1.6vw,19px);letter-spacing:-.01em}
 
+/* ============================================================
+   MÓDULOS — túnel em perspectiva + carrossel 3D de cards
+   ============================================================ */
+.modulos{position:relative;height:400vh}
+.modulos-sticky{
+  position:sticky;top:0;height:100vh;overflow:hidden;
+  background:#000;
+  display:grid;place-items:center;
+}
+
+/* --- TÚNEL ---
+   duas paredes giradas 90° a partir das bordas: com perspective no pai,
+   elas fogem para o fundo e as linhas convergem no ponto de fuga. */
+.tunel{
+  position:absolute;inset:0;
+  perspective:760px;perspective-origin:50% 50%;
+  pointer-events:none;
+}
+.parede{
+  position:absolute;top:-60%;height:220%;width:2600px;
+  overflow:hidden;
+  transform-style:preserve-3d;
+  /* desbota conforme se afasta, senão a grade fica dura no fundo */
+  mask-image:linear-gradient(90deg,#000 0 30%,transparent 92%);
+  -webkit-mask-image:linear-gradient(90deg,#000 0 30%,transparent 92%);
+}
+.parede.esq{left:0; transform-origin:left center; transform:rotateY(90deg)}
+.parede.dir{right:0;transform-origin:right center;transform:rotateY(-90deg) scaleX(-1)}
+/* a grade corre dentro da parede. o deslocamento é EXATAMENTE uma
+   célula, então o laço fecha sem emenda — e anima só transform. */
+.grade{
+  position:absolute;inset:0;width:calc(100% + 130px);
+  background:
+    repeating-linear-gradient(90deg,transparent 0 128px,rgba(255,255,255,.16) 128px 130px),
+    repeating-linear-gradient(0deg, transparent 0 128px,rgba(255,255,255,.16) 128px 130px);
+  animation:correGrade 9s linear infinite;
+}
+@keyframes correGrade{to{transform:translateX(-130px)}}
+
+/* --- TÍTULO que emerge --- */
+.modulos-titulo{
+  position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:1;
+  width:min(1000px,88vw);text-align:center;
+  font-size:clamp(30px,5.4vw,74px);font-weight:500;
+  line-height:1.12;letter-spacing:-.04em;
+  opacity:var(--mt,0);
+  pointer-events:none;
+}
+
+/* --- CARROSSEL --- */
+.cartas{
+  position:relative;z-index:2;
+  width:100%;height:100%;
+  perspective:1400px;perspective-origin:50% 50%;
+  transform-style:preserve-3d;
+}
+.carta{
+  /* distância deste card até o foco atual. max(a,-a) é o |a| — abs()
+     em CSS ainda é recente demais para produção. */
+  --delta:calc(var(--i) - var(--pc) * 2);
+  --dist:max(var(--delta), calc(var(--delta) * -1));
+  --foco:clamp(0, calc(1 - var(--dist)), 1);
+
+  position:absolute;left:50%;top:50%;
+  width:min(320px,74vw);aspect-ratio:.8;
+  border-radius:26px;padding:1.6em 1.4em;
+  font-size:clamp(13px,1.15vw,17px);
+  display:flex;flex-direction:column;
+  background:
+    radial-gradient(125% 62% at 50% 0%,
+      rgba(74,152,255,.9), rgba(26,66,140,.55) 42%, transparent 74%),
+    linear-gradient(180deg, rgba(18,28,48,.92), rgba(7,11,18,.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.16),
+    0 30px 60px rgba(0,0,0,.65);
+  /* preserve-3d faz o próprio translateZ ordenar a profundidade —
+     sem z-index, sem JS decidindo quem fica na frente */
+  transform:
+    translate(-50%,-50%)
+    rotateY(calc(var(--delta) * -24deg))
+    translateX(calc(var(--delta) * 290px))
+    translateZ(calc(var(--foco) * 200px - 70px));
+  filter:blur(calc((1 - var(--foco)) * 4.5px));
+  opacity:calc(.32 + .68 * var(--foco));
+}
+.carta-ico{
+  width:5em;height:5em;border-radius:1.4em;margin-bottom:auto;
+  display:grid;place-items:center;
+  background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.05));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.22), 0 .5em 1.4em rgba(0,0,0,.4);
+}
+.carta-ico svg{
+  width:52%;height:52%;fill:none;stroke:#fff;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+.carta h3{
+  font-size:1.32em;font-weight:600;line-height:1.2;
+  letter-spacing:-.025em;margin-bottom:.5em;
+}
+.carta p{font-size:.95em;line-height:1.5;color:rgba(255,255,255,.62)}
+
+@media(max-width:900px){
+  .carta{width:min(260px,78vw)}
+  .carta{transform:
+    translate(-50%,-50%)
+    rotateY(calc(var(--delta) * -18deg))
+    translateX(calc(var(--delta) * 200px))
+    translateZ(calc(var(--foco) * 140px - 50px));}
+}
+@media(prefers-reduced-motion:reduce){.grade{animation:none}}
+
 .features{padding:clamp(70px,11vw,140px) 0}
 .sec-head{text-align:center;max-width:680px;margin:0 auto clamp(40px,6vw,70px)}
 .sec-head h2{font-size:clamp(28px,4.4vw,54px);font-weight:600;letter-spacing:-.035em;line-height:1.1}
@@ -1100,6 +1218,57 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   </div>
 </div>
 
+<!-- ===================== MÓDULOS: túnel + carrossel ===================== -->
+<section class="modulos" id="modulos">
+  <div class="modulos-sticky">
+    <div class="tunel">
+      <div class="parede esq"><span class="grade"></span></div>
+      <div class="parede dir"><span class="grade"></span></div>
+    </div>
+
+    <h2 class="modulos-titulo text-grad">
+      O jeito mais simples<br>
+      <span class="blue-grad">de tocar a assistência.</span>
+    </h2>
+
+    <div class="cartas">
+      <article class="carta" style="--i:0">
+        <span class="carta-ico">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><!-- prancheta -->
+            <path d="M8.4 4.2H6.6A1.6 1.6 0 0 0 5 5.8v13.6a1.6 1.6 0 0 0 1.6 1.6h10.8a1.6 1.6 0 0 0 1.6-1.6V5.8a1.6 1.6 0 0 0-1.6-1.6h-1.8"/>
+            <rect x="8.4" y="2.4" width="7.2" height="3.6" rx="1.2"/>
+            <path d="M8.8 11.4h6.4M8.8 15h4.2"/>
+          </svg>
+        </span>
+        <h3>Ordem de serviço digital</h3>
+        <p>Defeito, IMEI, fotos de entrada e checklist. O cliente assina na tela, sem papel nenhum.</p>
+      </article>
+
+      <article class="carta" style="--i:1">
+        <span class="carta-ico">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><!-- balão -->
+            <path d="M20.4 12.2a7.8 7.8 0 0 1-11.3 7l-4.9 1.5 1.5-4.7A7.8 7.8 0 1 1 20.4 12.2z"/>
+            <path d="M9 11.8h.1M12 11.8h.1M15 11.8h.1"/>
+          </svg>
+        </span>
+        <h3>Aviso automático no WhatsApp</h3>
+        <p>Orçamento pronto, peça chegou, aparelho consertado. A mensagem dispara sozinha, na hora.</p>
+      </article>
+
+      <article class="carta" style="--i:2">
+        <span class="carta-ico">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><!-- caixa -->
+            <path d="M3.6 7.5 12 3.4l8.4 4.1v9L12 20.6l-8.4-4.1z"/>
+            <path d="M3.6 7.5 12 11.6l8.4-4.1M12 11.6v9"/>
+          </svg>
+        </span>
+        <h3>Estoque de peças por IMEI</h3>
+        <p>Baixa automática ao usar na OS, e alerta quando o display mais vendido está acabando.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
 <!-- =========================== CONTEÚDO =========================== -->
 <section class="strip">
   <div class="container">
@@ -1278,6 +1447,24 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     /* botões invisíveis não podem receber clique */
     const clicavel = pt < .5 ? 'auto' : 'none';
     if(text.style.pointerEvents !== clicavel) text.style.pointerEvents = clicavel;
+
+    atualizaModulos();
+  }
+
+  /* ---------- seção dos módulos (túnel + carrossel) ----------
+     progresso próprio, independente do hero. --pc vai de 0 a 1 e cada
+     card calcula sozinho a distância até o foco (ver .carta no CSS). */
+  const modulos = document.getElementById('modulos');
+  function atualizaModulos(){
+    if(!modulos) return;
+    const alvo = modulos.offsetHeight - window.innerHeight;
+    const bruto = alvo > 0 ? (window.scrollY - modulos.offsetTop) / alvo : 0;
+    const m = clamp(bruto, 0, 1);
+    /* margens de 12% nas pontas: o primeiro card já chega em foco e o
+       último não sai antes da seção acabar */
+    def('--pc', range(m,.12,.88).toFixed(4));
+    /* o título emerge no começo e some quando os cards assumem */
+    def('--mt', (ease(range(m,.02,.16)) * (1 - ease(range(m,.22,.34)))).toFixed(4));
   }
   function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(update); } }
 
