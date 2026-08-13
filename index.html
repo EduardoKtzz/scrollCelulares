@@ -284,20 +284,20 @@ a{color:inherit;text-decoration:none}
 .screen{
   position:relative;z-index:1;width:100%;height:100%;overflow:hidden;
   border-radius:12.6%/6.2%;
-  /* O DISPLAY TEM QUE PARECER ACESO.
-     antes o topo era #16294a — luminância 39 de 255, azul-marinho
-     quase preto. o aparelho lia como um bloco escuro com brilho
-     externo, não como uma tela ligada. o topo agora sai em 93, e a
-     queda é mais curta (62% em vez de 78%) para a luz se concentrar
-     em cima, como num display de verdade. */
+  /* CALIBRAGEM DO DISPLAY — passei do ponto nas duas direções.
+     #16294a (luminância 39) deixava o aparelho apagado; #2f66ad (95)
+     virou azul claro lavado. o alvo é ~56: marinho escuro, como na
+     referência. lá a sensação de "aceso" vem do halo atrás do
+     aparelho vazando pela borda de cima, não do display ser claro.
+     a queda também encurtou (55%), concentrando o azul no topo. */
   background:
     /* reflexo de vidro na aresta de cima */
-    linear-gradient(180deg,rgba(255,255,255,.13),transparent 9%),
-    radial-gradient(130% 62% at 50% -5%,
-      #2f66ad,
-      #1d4278 26%,
-      #0e2040 50%,
-      #050a14 78%);
+    linear-gradient(180deg,rgba(255,255,255,.09),transparent 8%),
+    radial-gradient(125% 55% at 50% -8%,
+      #1b3c6e,
+      #12294e 28%,
+      #0a1730 52%,
+      #04070e 78%);
   /* container APENAS. O font-size em cqw tem que ficar nos filhos:
      cqw usado no próprio container não se enxerga e cai para vw,
      travando a fonte no tamanho da janela em vez da tela do celular. */
