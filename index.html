@@ -874,9 +874,11 @@ section{position:relative;z-index:2}
   pointer-events:none;
 }
 /* 2000px de profundidade (era 2600): quanto mais longa a parede, mais
-   comprimido o fundo — e é lá que as linhas serrilham. */
+   comprimido o fundo — e é lá que as linhas serrilham.
+   170% de altura (era 220%): a área da parede entra no custo de
+   composição, e o excedente não aparecia em tela nenhuma. */
 .parede{
-  position:absolute;top:-60%;height:220%;width:2000px;
+  position:absolute;top:-35%;height:170%;width:2000px;
   overflow:hidden;
   transform-style:preserve-3d;
 }
@@ -919,9 +921,6 @@ section{position:relative;z-index:2}
      mostrava o defeito porque desliza para o outro lado e a sobra
      descoberta caía fora da parede. */
   position:absolute;inset:0;left:-190px;width:calc(100% + 380px);
-  background:
-    repeating-linear-gradient(90deg,transparent 0 188px,rgba(255,255,255,.19) 188px 190px),
-    repeating-linear-gradient(0deg, transparent 0 188px,rgba(255,255,255,.19) 188px 190px);
   /* --sentido compensa o eixo local espelhado das duas paredes */
   transform:translateX(calc(var(--tunel,0) * var(--sentido,1) * 1px));
 }
@@ -929,22 +928,30 @@ section{position:relative;z-index:2}
 .parede.dir .grade{--sentido:-1}
 
 /* PROFUNDIDADE DE CAMPO — duas camadas da mesma grade com máscaras
-   complementares: a de perto nítida, a do fundo desfocada.
-   o desfoque não é só estética: ele É antisserrilhamento. antes eu
-   precisava cortar o túnel curto para as linhas do fundo não piscarem;
-   borradas, elas podem ir bem mais longe sem cintilar. */
+   complementares: nítida perto, macia no fundo.
+
+   A maciez vem da PRÓPRIA LINHA, não de filter:blur. O filtro estava
+   sendo aplicado num elemento de ~2380x2000px, duas vezes (uma por
+   parede), e borrar essa superfície a cada quadro travava a rolagem.
+   Uma linha com borda em degradê custa o mesmo que uma linha dura, e
+   sob a compressão da perspectiva se funde num véu — que é o efeito
+   procurado.
+
+   As duas camadas centram a linha em 95px do período de 190px, então
+   elas coincidem na faixa em que se cruzam. */
 .grade.perto{
-  mask-image:linear-gradient(var(--ang),#000 0 24%,transparent 46%);
-  -webkit-mask-image:linear-gradient(var(--ang),#000 0 24%,transparent 46%);
+  background:
+    repeating-linear-gradient(90deg,transparent 0 94px,rgba(255,255,255,.2) 94px 96px,transparent 96px 190px),
+    repeating-linear-gradient(0deg, transparent 0 94px,rgba(255,255,255,.2) 94px 96px,transparent 96px 190px);
+  mask-image:linear-gradient(var(--ang),#000 0 22%,transparent 44%);
+  -webkit-mask-image:linear-gradient(var(--ang),#000 0 22%,transparent 44%);
 }
 .grade.fundo{
-  filter:blur(2.4px);
-  mask-image:linear-gradient(var(--ang),transparent 20%,#000 44%);
-  -webkit-mask-image:linear-gradient(var(--ang),transparent 20%,#000 44%);
-  /* aqui o will-change compensa: a camada já é borrada, então
-     rasterizar uma vez não custa nitidez — e evita refazer o blur a
-     cada quadro do scroll */
-  will-change:transform;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 83px,rgba(255,255,255,.035) 88px,rgba(255,255,255,.14) 95px,rgba(255,255,255,.035) 102px,transparent 107px 190px),
+    repeating-linear-gradient(0deg, transparent 0 83px,rgba(255,255,255,.035) 88px,rgba(255,255,255,.14) 95px,rgba(255,255,255,.035) 102px,transparent 107px 190px);
+  mask-image:linear-gradient(var(--ang),transparent 18%,#000 42%);
+  -webkit-mask-image:linear-gradient(var(--ang),transparent 18%,#000 42%);
 }
 
 /* --- TÍTULO que emerge --- */
