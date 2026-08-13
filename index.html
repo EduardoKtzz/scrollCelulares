@@ -933,7 +933,22 @@ section{position:relative;z-index:2}
   position:absolute;inset:0;left:-190px;width:calc(100% + 380px);
   /* --sentido compensa o eixo local espelhado das duas paredes */
   transform:translateX(calc(var(--tunel,0) * var(--sentido,1) * 1px));
+  /* DERIVA AMBIENTE — as linhas seguem andando devagar com a tela
+     parada. vai na propriedade translate, não em transform: o avanço
+     do scroll já ocupa o transform, e as duas se SOMAM em vez de uma
+     apagar a outra (ordem: translate → rotate → scale → transform).
+     o passo é uma célula inteira, então o laço fecha sem emenda. */
+  animation:deriva 26s linear infinite;
+  animation-play-state:paused;
 }
+@keyframes deriva{
+  from{translate:0}
+  to  {translate:calc(190px * var(--sentido,1))}
+}
+/* só roda com a seção em tela: a parede é uma superfície grande com
+   máscara e projeção 3D, e animá-la fora de vista faria o navegador
+   recompor tudo isso à toa enquanto a pessoa está lá em cima no hero */
+.modulos.visivel .grade{animation-play-state:running}
 .parede.esq .grade{--sentido:1}
 .parede.dir .grade{--sentido:-1}
 
@@ -1102,6 +1117,9 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   .ilha-estado i,.ilha-estado i::before{animation:none}
   .ilha-estado i::before{background:var(--cor)}
   .carta{animation:none}
+  /* a deriva ambiente para; o avanço pelo scroll fica, porque é gesto
+     da própria pessoa */
+  .grade{animation:none}
 }
 </style>
 </head>
@@ -1545,6 +1563,12 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   const modulos = document.getElementById('modulos');
   const tunelEl = document.querySelector('.tunel');
   let tunelAnterior = null;
+  /* liga a deriva das linhas só enquanto a seção está em tela */
+  if(modulos){
+    new IntersectionObserver(
+      ([e]) => modulos.classList.toggle('visivel', e.isIntersecting)
+    ).observe(modulos);
+  }
   function atualizaModulos(){
     if(!modulos) return;
     const alvo = modulos.offsetHeight - window.innerHeight;
