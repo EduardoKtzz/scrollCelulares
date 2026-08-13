@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- durante o desenvolvimento: impede o navegador de servir versão antiga.
+     pode remover quando for publicar -->
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>FixCell — Sistema para assistência técnica de celular</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --bg:#080808;
+  --fg:#ffffff;
+  --muted:#8f8f94;
+  --line:rgba(255,255,255,.09);
+  --card:rgba(255,255,255,.035);
+
+  --accent-1:#5BE3FF;
+  --accent-2:#2E9BFF;
+  --accent-3:#0B5FD8;
+
+  --grad-silver:linear-gradient(#fff,#b8b8b8 40%,#fff 50%,#fff 60%,#b8b8b8);
+  --grad-blue:linear-gradient(90deg,var(--accent-1),var(--accent-2) 60%,var(--accent-3) 90%);
+
+  /* gigante: você vê só o topo da moldura.
+     o min() garante que a largura (altura x 0.493) caiba na tela
+     e as bordas arredondadas fiquem visíveis em qualquer proporção */
+  --phone-start:min(210vh,170vw);
+  /* largura inicial do celular (284/576 = .4931 da altura) e a posição
+     exata da borda dele. as peças que "mordem" a moldura se ancoram
+     nisto — percentual fixo do viewport não serve, porque a borda muda
+     de lugar conforme a proporção da janela troca o braço do min(). */
+  --phone-w0:calc(min(210vh,170vw) * .4931);
+  --borda:calc(50% - var(--phone-w0) / 2);
+  /* 64vh (era 50): a 50vh a tela tinha 209px e o texto do chat caía
+     para ~6px. o tamanho da conversa é refém do tamanho do aparelho. */
+  --phone-end:64vh;
+  --phone-top:14vh;     /* distância do topo quando gigante      */
+
+  /* progressos de scroll, escritos pelo JS */
+  --p:0;    /* celular encolhe                     */
+  --pt:0;   /* texto do hero SAI                   */
+  --pa:0;   /* interface do app ENTRA (depois do texto sumir) */
+  --po:0;   /* peças flutuantes sobem                        */
+  --pf:0;   /* FOCO NO CELULAR: luz migra do topo para o aro,
+               vinheta fecha e as partículas somem              */
+  --pp:0;   /* painel de avaliação: pulso (entra E sai)         */
+  /* as frases grandes não têm variável própria: usam --pa, para
+     nascerem junto com os balões da conversa */
+  --p4:0;   /* tudo sai + título final entra       */
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+/* quando o Lenis assume, o scroll-behavior nativo tem que sair do
+   caminho — os dois brigando causam engasgo nos links de âncora */
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto}
+.lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}
+body{
+  background:var(--bg);
+  color:var(--fg);
+  font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:16px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+.container{width:min(1180px,92vw);margin-inline:auto}
+
+/* background-clip:text pinta o fundo ATRAVÉS das letras — e o fundo é
+   a caixa do elemento. descidas de g/p/q/ç que passam da caixa ficam
+   sem fundo e somem. o padding estende a caixa para baixo; em span
+   inline ele não mexe na altura da linha, só na área pintada. */
+.text-grad,.blue-grad{padding-bottom:.16em}
+.text-grad{background:var(--grad-silver);-webkit-background-clip:text;background-clip:text;color:transparent}
+.blue-grad{background:var(--grad-blue);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav{
+  position:fixed;inset:0 0 auto 0;z-index:60;
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  padding:18px 0;width:min(1180px,92vw);margin-inline:auto;
+}
+/* logo: marca geométrica + wordmark de duas linhas.
+   truque do FacilPay: a linha de baixo é esticada até bater exatamente
+   na largura da palavra de cima (flex + space-between, não letter-spacing,
+   que sempre sobra um espaço fantasma na última letra) */
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{width:31px;height:31px;flex:none;filter:drop-shadow(0 0 14px rgba(46,155,255,.45))}
+.brand-text{display:flex;flex-direction:column;line-height:1}
+.brand-text b{font-size:30px;font-weight:800;letter-spacing:-.055em}
+.brand-text i{
+  display:flex;justify-content:space-between;
+  font-style:normal;font-size:9.5px;font-weight:600;color:#c8d4e4;
+  margin-top:5px;padding-left:.12em;
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:44px;padding:0 22px;border-radius:999px;
+  font-size:14px;font-weight:600;white-space:nowrap;
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-primary{background:var(--grad-blue);color:#02121f;box-shadow:0 8px 30px rgba(46,155,255,.35)}
+.btn-primary:hover{box-shadow:0 12px 40px rgba(46,155,255,.5)}
+.btn-ghost{border:1px solid var(--line);background:var(--card);color:#fff}
+.btn-ghost:hover{background:rgba(255,255,255,.08)}
+/* CTA do menu: sem fundo, só texto */
+.btn-plain{background:none;border:0;color:#fff;padding:0 4px}
+.btn-plain:hover{color:var(--accent-1)}
+
+/* ============================================================
+   HERO — scrollytelling
+
+   CAMADAS (z-index)
+     3  brilho azul · 4 peças de trás · 5 partículas
+     14 celular · 17 vinheta · 18 máscara de rodapé
+     19 tags · 20 peças da frente
+     21 painel de avaliação · 24 título final
+   (o texto do hero fica DENTRO da .screen, não neste empilhamento)
+   ============================================================ */
+/* 700vh: as fases são frações desta altura, então encurtar acelera a
+   sequência inteira mantendo as proporções entre elas. */
+.hero{position:relative;height:700vh}
+.hero-sticky{position:sticky;top:0;height:100vh;overflow:hidden}
+
+/* z-index 5: acima do brilho e das peças de trás, abaixo das da frente —
+   é o que faz as bolinhas passarem NA FRENTE de umas e ATRÁS de outras.
+   sem opacity aqui — a transparência já vem na cor de cada camada (.30 e .60) */
+#particles{
+  position:absolute;inset:0;width:100%;height:100%;z-index:5;
+  /* somem quando a tela fica cheia: nada compete com o celular */
+  opacity:calc(1 - var(--pf));
+  will-change:opacity;
+}
+/* o "nascer do sol" azul atrás do topo do celular.
+   as duas camadas ficam centradas NA BORDA SUPERIOR do aparelho: a metade
+   de baixo some atrás dele (z-index 3 < 14) e sobra só o arco de luz em cima.
+   o `top` usa o mesmo cálculo do .phone-wrap, então a luz acompanha o
+   celular enquanto ele encolhe. */
+.glow,.glow-core{
+  position:absolute;left:50%;z-index:3;pointer-events:none;border-radius:50%;
+  top:calc(var(--phone-top) + ((100vh - var(--phone-end)) / 2 - var(--phone-top)) * var(--p));
+  translate:-50% -50%;
+}
+/* com a tela cheia (--pf), a luz do topo cede lugar ao aro do celular.
+   o halo azul só recua parcialmente (sobra ambiente); o núcleo branco
+   quase some, porque é ele que denuncia o "nascer do sol" lá em cima. */
+/* will-change promove as duas a camada própria: sem isso, mudar a
+   opacidade obriga a repintar o blur(42px) junto, a cada quadro */
+.glow{opacity:calc((1 - var(--p4)) * (1 - .5 * var(--pf)));will-change:opacity}
+.glow-core{opacity:calc((1 - var(--p4)) * (1 - .85 * var(--pf)));will-change:opacity}
+/* halo azul largo */
+.glow{
+  width:min(1500px,135vw);height:min(780px,72vw);
+  background:radial-gradient(closest-side,
+    rgba(64,158,255,.58),
+    rgba(38,116,226,.32) 38%,
+    rgba(18,66,150,.14) 62%,
+    transparent 80%);
+  filter:blur(42px);
+}
+/* núcleo branco-azulado, achatado, colado na borda do celular */
+.glow-core{
+  width:min(660px,52vw);height:min(210px,17vw);
+  background:radial-gradient(closest-side,
+    rgba(255,255,255,.92),
+    rgba(208,236,255,.60) 32%,
+    rgba(126,194,255,.24) 62%,
+    transparent 82%);
+  filter:blur(26px);
+}
+
+/* --- celular --- */
+.phone-wrap{
+  position:absolute;left:50%;z-index:14;
+  /* TAMANHO FIXO + scale, em vez de animar height.
+     animando a altura, cada frame refazia o layout do aparelho — e como
+     a .screen é um container de consulta, TODA unidade cqw/cqh do chat
+     era recalculada 60x por segundo. scale roda no compositor: zero
+     layout, zero recálculo de container.
+     a base é o tamanho GIGANTE e a escala só diminui: reduzir mantém o
+     texto nítido, enquanto ampliar borraria a tela inicial. */
+  top:var(--phone-top);
+  height:var(--phone-start);
+  aspect-ratio:284/576;
+  transform-origin:50% 0;                       /* encolhe rumo ao topo */
+  translate:-50% var(--pshift,0px);
+  scale:calc(var(--pscale,1) * (1 - .10 * var(--p4)));
+  opacity:calc(1 - var(--p4));
+  will-change:transform;
+}
+/* sondas invisíveis: deixam o JS ler os valores de --phone-end e
+   --phone-top já resolvidos em px, inclusive com os media queries
+   aplicados — sem duplicar essa lógica no script */
+#sonda-fim,#sonda-topo{position:absolute;visibility:hidden;pointer-events:none;width:0}
+#sonda-fim{height:var(--phone-end)}
+#sonda-topo{top:var(--phone-top);height:0}
+/* MOLDURA
+   tudo em % para continuar nítido de 1886px a 449px de altura.
+   o gradiente a 100deg corre quase na horizontal: as paradas claras
+   das pontas viram os brilhos das laterais de titânio, e o miolo
+   escuro é a face frontal que não pega luz. */
+.phone{
+  position:relative;width:100%;height:100%;
+  border-radius:14.5%/7.2%;
+  padding:2.8%;                 /* trilho metálico + bezel preto */
+  /* titânio, não cromado: os picos de brilho ficam em ~#a9b0b8 em vez
+     de quase branco, e o miolo desce mais — é o contraste alto que
+     fazia a moldura parecer plástico espelhado */
+  background:linear-gradient(100deg,
+    #34373b 0%,  #767c84 3.5%, #a9b0b8 6%,  #5f656c 10%,
+    #34373b 17%, #24272a 34%,  #1e2124 50%, #2b2e32 66%,
+    #545a60 82%, #8b929a 89%,  #aab1b9 92%, #52575d 96%, #34373b 100%);
+  /* sombra ESTÁTICA. antes o raio do desfoque era interpolado com
+     --pf, e repintar box-shadow desfocado a cada quadro é das
+     operações mais caras que existem. o aro aceso virou um elemento
+     próprio (.phone-halo), que só muda de opacidade. */
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.13),
+    0 30px 80px rgba(0,0,0,.75),
+    0 0 24px rgba(80,170,255,.3),
+    0 0 80px rgba(46,155,255,.18);
+}
+/* o aro que acende quando a conversa fica pronta */
+.phone-halo{
+  position:absolute;inset:0;border-radius:14.5%/7.2%;pointer-events:none;
+  box-shadow:0 0 58px rgba(80,170,255,.8),0 0 190px rgba(46,155,255,.6);
+  opacity:var(--pf);
+  will-change:opacity;
+}
+/* bezel preto entre o trilho e a tela.
+   ATENÇÃO ao inset em %: topo/base resolvem contra a ALTURA e as laterais
+   contra a LARGURA. com um valor só o anel sai 4x mais fino em cima.
+   0.592 = 1.2 x (284/576), a razão de aspecto — iguala os quatro lados. */
+.phone::after{
+  content:'';position:absolute;inset:.592% 1.2%;z-index:0;
+  border-radius:13.2%/6.5%;
+  background:#04050a;
+}
+
+/* botões laterais — pílulas que saem um pouco da moldura */
+/* 1.6% de largura (era 1.05): com 3px e 81% para fora, sobrava meio
+   pixel encostando no trilho e o botão lia como um borrão solto.
+   o avanço voltou ao original — só a ancoragem mudou. */
+.side{
+  position:absolute;z-index:2;width:1.6%;border-radius:999px;
+  /* mesmo tom do trilho: antes eram pílulas quase brancas e roubavam
+     a atenção mais que a tela */
+  background:linear-gradient(90deg,#1c1f22,#5f656c 38%,#8b929a 56%,#3a3e43);
+  box-shadow:0 1px 2px rgba(0,0,0,.6);
+}
+.side.esq{left:-.85%}
+.side.dir{right:-.85%}
+.side.acao{top:17.5%;height:4.2%}
+.side.vol-mais{top:25%;height:7%}
+.side.vol-menos{top:33.6%;height:7%}
+.side.power{top:26%;height:10.5%}
+
+/* linhas de antena no trilho de cima */
+/* linhas de antena: num aparelho real são frestas discretas, não
+   retângulos claros. mais finas e com metade do contraste */
+.antena{
+  position:absolute;top:0;height:.85%;width:1.8%;z-index:3;
+  background:rgba(150,163,178,.3);border-radius:1px;
+}
+.antena.a1{left:19%}
+.antena.a2{right:19%}
+.screen{
+  position:relative;z-index:1;width:100%;height:100%;overflow:hidden;
+  border-radius:12.6%/6.2%;
+  background:
+    /* reflexo de vidro na aresta de cima */
+    linear-gradient(180deg,rgba(255,255,255,.10),transparent 9%),
+    radial-gradient(125% 78% at 50% 0%,#16294a,#0a1020 48%,#04060c 78%);
+  /* container APENAS. O font-size em cqw tem que ficar nos filhos:
+     cqw usado no próprio container não se enxerga e cai para vw,
+     travando a fonte no tamanho da janela em vez da tela do celular. */
+  container-type:size;
+}
+/* dynamic island: pílula preta com a câmera à direita, sem marca.
+   o nome da empresa vive na navbar, não no hardware. */
+.island{
+  position:absolute;left:50%;top:2.6cqh;translate:-50% 0;z-index:5;
+  height:3.1cqh;width:27%;border-radius:999px;background:#000;
+  display:flex;align-items:center;justify-content:flex-end;
+  padding:0 1.15em;font-size:3.2cqw;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+}
+/* lente da câmera frontal, dentro da ilha */
+.island .cam{
+  width:.66em;height:.66em;border-radius:50%;flex:none;
+  background:radial-gradient(circle at 34% 28%,#31405e,#0b1018 58%,#04060b);
+  box-shadow:inset 0 0 0 .05em rgba(130,170,225,.28);
+}
+
+/* --- cromo do sistema: entra junto com o app (--pa) --- */
+.statusbar{
+  position:absolute;top:3cqh;left:8.5%;right:8.5%;z-index:4;
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:3cqw;font-weight:600;color:#fff;
+  /* chega junto com o cabeçalho, não ao longo de toda a conversa */
+  opacity:clamp(0, calc(var(--pa) * 6), 1);
+}
+.sb-dir{display:flex;align-items:center;gap:.34em}
+.barras{display:flex;align-items:flex-end;gap:.09em;height:.7em}
+.barras i{width:.16em;background:#fff;border-radius:.05em}
+.barras i:nth-child(1){height:38%}
+.barras i:nth-child(2){height:58%}
+.barras i:nth-child(3){height:79%}
+.barras i:nth-child(4){height:100%}
+.wifi{width:.95em;height:.7em}
+.bateria{
+  width:1.45em;height:.7em;border-radius:.22em;padding:.08em;display:flex;
+  box-shadow:inset 0 0 0 .07em rgba(255,255,255,.5);
+}
+.bateria span{flex:1;background:#fff;border-radius:.1em}
+.home-bar{
+  position:absolute;left:50%;bottom:1.2cqh;translate:-50% 0;z-index:4;
+  width:33%;height:.5cqh;min-height:2px;border-radius:999px;
+  background:rgba(255,255,255,.82);
+  /* chega junto com o cabeçalho, não ao longo de toda a conversa */
+  opacity:clamp(0, calc(var(--pa) * 6), 1);
+}
+
+/* ============================================================
+   A CONVERSA — construída pelo scroll, um elemento por vez.
+
+   uma variável só (--pa) comanda tudo. cada peça tem um limiar --t
+   e calcula o próprio progresso local:
+       --l: clamp(0, (--pa - --t) * 5, 1)
+   o clamp é essencial: sem ele o --l passa de 1 e o translateY
+   inverte de sinal, fazendo a mensagem subir além do lugar dela.
+   ============================================================ */
+.app{
+  position:absolute;inset:0;z-index:3;
+  display:flex;flex-direction:column;
+  /* 7cqw: numa landing o texto do mockup precisa ser MAIOR que o
+     realista. 5.2cqw dava a proporção certa de um app de verdade e
+     era ilegível na tela do site. */
+  font-size:7cqw;
+  padding:7.4cqh .8em 2.8cqh;
+}
+
+/* cabeçalho da conversa */
+.chat-topo{
+  display:flex;align-items:center;gap:.42em;flex:none;
+  padding-bottom:.55em;border-bottom:1px solid rgba(255,255,255,.07);
+  opacity:clamp(0, calc(var(--pa) * 6), 1);
+}
+.chat-topo .voltar{color:#8e9bb3;font-size:.85em;line-height:1}
+.avatar{
+  width:1.5em;height:1.5em;border-radius:50%;flex:none;font-size:.8em;
+  background:linear-gradient(150deg,#43608a,#1b2436);
+  display:grid;place-items:center;
+}
+.chat-topo .nome{font-size:.72em;font-weight:600;letter-spacing:-.01em}
+.chat-topo .mais{margin-left:auto;color:#8e9bb3;font-size:.8em;line-height:1}
+
+/* mensagens do TOPO para baixo, logo abaixo do cabeçalho — é como a
+   referência faz. ancoradas no rodapé, sobrava um vazio no meio da tela */
+.msgs{
+  flex:1;display:flex;flex-direction:column;justify-content:flex-start;
+  gap:.4em;padding:.55em 0;
+}
+.msg{
+  --l:clamp(0, calc((var(--pa) - var(--t)) * 5), 1);
+  max-width:84%;padding:.48em .6em;border-radius:.9em;
+  font-size:.68em;line-height:1.36;
+  opacity:var(--l);
+  transform:translateY(calc((1 - var(--l)) * .8em));
+}
+.msg.dela{align-self:flex-start;background:rgba(255,255,255,.085);border-bottom-left-radius:.28em}
+.msg.nossa{align-self:flex-end;background:linear-gradient(160deg,#2f7fe8,#1a58bb);border-bottom-right-radius:.28em}
+.msg .hora{display:block;text-align:right;font-size:.72em;margin-top:.28em;color:#8e9bb3}
+.msg.nossa .hora{color:rgba(255,255,255,.7)}
+
+/* barra de digitar */
+.barra-input{
+  display:flex;align-items:center;gap:.42em;flex:none;
+  opacity:clamp(0, calc((var(--pa) - .05) * 6), 1);
+}
+.mais-btn{
+  width:1.55em;height:1.55em;border-radius:50%;flex:none;font-size:.75em;
+  background:rgba(255,255,255,.09);color:#c3cede;display:grid;place-items:center;
+}
+.campo{
+  flex:1;height:2.05em;border-radius:999px;font-size:.6em;color:#8e9bb3;
+  background:rgba(255,255,255,.07);display:flex;align-items:center;
+  justify-content:space-between;padding:0 .75em;
+}
+.enviar{
+  width:1.65em;height:1.65em;border-radius:50%;flex:none;font-size:.78em;
+  background:var(--grad-blue);color:#02121f;display:grid;place-items:center;
+  box-shadow:0 .3em .9em rgba(46,155,255,.4);
+}
+
+/* CARD DE AVALIAÇÃO — vive FORA da .screen, sobreposto ao celular.
+   é o que permite ele ultrapassar as bordas do aparelho, como na
+   referência. por estar fora do container, as medidas voltam a ser
+   de viewport (px/vw) em vez de cqw.
+
+   estrutura de review de verdade: quem avaliou em cima (avatar, nome,
+   estrelas, quando) e o depoimento como corpo. sem linha de rodapé
+   com número de OS — isso é dado interno, não interessa a quem lê. */
+.painel{
+  /* --pp é um PULSO: sobe, segura, e volta a zero. o card precisa
+     sair de cena antes das frases grandes, senão o scrim dele
+     apagaria todas. */
+  --l:var(--pp);
+  position:absolute;left:50%;top:46%;z-index:21;
+  translate:-50% -50%;
+  scale:calc(.78 + .22 * var(--l));     /* o "zoom" na chegada */
+  width:min(430px,80vw);
+  border-radius:1.4em;
+  background:
+    radial-gradient(120% 100% at 18% 0%,rgba(255,255,255,.20),transparent 58%),
+    linear-gradient(158deg,#3d93ff,#1f6ade 55%,#1553b4);
+  padding:1.25em 1.3em 1.35em;
+  font-size:clamp(13px,1.35vw,18px);color:#fff;
+  opacity:var(--l);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.3),   /* aresta de luz no topo */
+    0 1.6em 3.4em rgba(0,0,0,.6),
+    0 0 3.4em rgba(46,155,255,.5);
+}
+/* o escurecimento saiu do box-shadow para um elemento próprio.
+   um spread de 100vmax com alpha variável repintava a tela inteira a
+   cada frame; opacity num elemento separado é só composição. */
+.painel-scrim{
+  position:absolute;inset:0;z-index:20;pointer-events:none;
+  background:#03070e;
+  opacity:calc(.5 * var(--pp));
+}
+.painel-cab{display:flex;align-items:center;gap:.72em;margin-bottom:.95em}
+/* avatar com a inicial */
+.painel-ico{
+  width:2.7em;height:2.7em;border-radius:50%;flex:none;
+  font-size:.92em;font-weight:700;letter-spacing:-.02em;
+  background:rgba(255,255,255,.2);color:#fff;
+  display:grid;place-items:center;
+  box-shadow:inset 0 0 0 .085em rgba(255,255,255,.42);
+}
+.painel-cab .l1{font-size:1.08em;font-weight:700;letter-spacing:-.02em;line-height:1.25}
+.painel-cab .l2{display:flex;align-items:center;gap:.55em;margin-top:.2em;font-size:.8em}
+.painel-cab .estrelas{color:#ffd257;letter-spacing:.09em}
+.painel-cab .quando{color:rgba(255,255,255,.72)}
+/* selo de verificado */
+.painel-selo{
+  margin-left:auto;flex:none;
+  display:inline-flex;align-items:center;gap:.32em;
+  font-size:.72em;font-weight:700;color:#b6f7d1;
+  background:rgba(255,255,255,.15);border-radius:999px;padding:.42em .75em;
+}
+/* o depoimento: sem caixa, com aspa decorativa — é o que dá cara de
+   review em vez de recibo */
+.painel-msg{
+  position:relative;padding-left:.9em;
+  font-size:1.02em;line-height:1.5;font-weight:500;
+}
+.painel-msg::before{
+  content:'“';position:absolute;left:-.08em;top:.34em;
+  font-size:2.6em;line-height:0;color:rgba(255,255,255,.35);
+}
+
+/* --- texto do hero: filho de .screen, medido em unidades de container ---
+   antes ele era um bloco solto com escala própria (ia até .62x) enquanto
+   o celular ia até .24x. taxas diferentes = em algum ponto do meio o texto
+   ficava mais largo que o aparelho e vazava pelas laterais.
+   em cqw/cqh ele acompanha a moldura exatamente, sem número mágico. */
+.hero-text{
+  position:absolute;left:19%;right:19%;top:17cqh;z-index:4;
+  translate:0 -50%;
+  text-align:center;
+  font-size:5.8cqw;          /* tudo abaixo é em em, relativo a isto */
+  opacity:calc(1 - var(--pt));
+}
+.hero-kicker{color:#9fb2cc;font-size:.31em;margin-bottom:.34em}
+.hero-text h1{font-size:1em;font-weight:600;line-height:1.06;letter-spacing:-.045em}
+.hero-actions{display:flex;gap:.23em;justify-content:center;flex-wrap:wrap;margin-top:.57em}
+/* o height/padding usam o em do próprio botão, não o do bloco */
+.hero-actions .btn{font-size:.27em;height:3.1em;padding:0 1.55em}
+@media(max-width:900px){.hero-text{left:9%;right:9%}}
+
+/* --- peças flutuantes em volta do celular ---
+   equivalem às moedas 3D da referência. sobem conforme o scroll, e
+   cada uma tem velocidade própria (--sp) — é a DIFERENÇA de velocidade
+   que cria profundidade e a sensação de que a página está descendo.
+
+   dois planos separados pelas partículas (z-index 5):
+     .orbs.tras   z 4  → as bolinhas passam NA FRENTE delas
+     .orbs.frente z 15 → as bolinhas passam ATRÁS delas
+   o disco é translúcido nos dois casos, então dá pra ver as bolinhas
+   através do vidro. */
+.orbs{position:absolute;inset:0;pointer-events:none}
+.orbs.tras{z-index:4}
+/* z 20: acima da vinheta. o plano de trás fica abaixo dela de
+   propósito — o escurecimento das bordas ajuda a afundá-lo, e é o
+   contraste entre os dois que sustenta a profundidade */
+.orbs.frente{z-index:20}
+
+.orb{
+  position:absolute;
+  aspect-ratio:1;
+  display:grid;
+  perspective:300px;
+  scale:var(--k,1);
+  /* sobe com o scroll; --sp é a distância em px de cada peça.
+     --tx serve para centrar a peça na borda do celular (±50%) */
+  translate:var(--tx,0) calc(var(--sp) * var(--po) * -1px);
+  animation:boia var(--dur,7s) ease-in-out infinite;
+}
+@keyframes boia{
+  0%,100%{transform:translateY(0)}
+  50%    {transform:translateY(-9px)}
+}
+
+/* A MOEDA — três camadas empilhadas na mesma célula do grid */
+.coin{
+  grid-area:1/1;position:relative;width:100%;height:100%;
+  transform-style:preserve-3d;
+  transform:rotateY(var(--ry,-28deg)) rotateX(var(--rx,14deg));
+  animation:gira calc(var(--dur,7s) * 2.4) ease-in-out infinite;
+}
+/* o giro lento é o que prova o volume: com a peça parada, qualquer
+   gradiente vira desenho. em movimento, o aro revela a curvatura. */
+@keyframes gira{
+  0%,100%{transform:rotateY(var(--ry)) rotateX(var(--rx))}
+  50%    {transform:rotateY(calc(var(--ry) + 16deg)) rotateX(calc(var(--rx) - 5deg))}
+}
+.coin > *{position:absolute;inset:0;border-radius:50%}
+
+/* 1. ESPESSURA — deslocada em 2D, não em Z.
+   com 28° de inclinação, um translateZ(7px) projeta menos de 3px na
+   tela: some. o deslocamento no plano garante o crescente visível. */
+.edge{
+  background:linear-gradient(100deg,#060c15,#2b3d54 24%,#8fabc9 44%,#33496a 60%,#080e18);
+  transform:translate(-15%,9%);
+  box-shadow:0 0 22px rgba(46,155,255,.42);
+}
+/* 2. ARO — o conic faz a luz percorrer a borda circular, que é como
+   o olho lê metal torneado. dois pontos de brilho = duas fontes. */
+.disc{
+  background:conic-gradient(from 205deg,
+    #0b131f 0deg,  #6f8aa8 38deg, #d3e8ff 68deg, #4e6c8b 100deg,
+    #0d1624 148deg,#33506e 198deg,#a2c6e8 238deg,#e2f1ff 260deg,
+    #3b5878 292deg,#0f1926 332deg,#0b131f 360deg);
+  box-shadow:
+    0 0 0 1px rgba(140,210,255,.3),
+    inset 0 0 8px rgba(0,0,0,.5),
+    0 10px 20px rgba(0,0,0,.55);
+  display:grid;place-items:center;
+}
+/* 3. FACE recuada e translúcida — as partículas aparecem pelo meio */
+.face{
+  position:relative;width:56%;height:56%;border-radius:50%;
+  display:grid;place-items:center;
+  background:radial-gradient(circle at 36% 27%,
+    rgba(74,116,168,.6),rgba(10,17,30,.86) 56%,rgba(4,8,15,.92));
+  box-shadow:
+    inset 0 4px 8px rgba(0,0,0,.85),
+    inset 0 -2px 4px rgba(160,210,255,.28);
+}
+.face svg{stroke:#a8e4ff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.face svg .cheio{fill:#a8e4ff;stroke:none}
+
+/* plano da frente: maiores, nítidas */
+.orbs.frente .orb{width:clamp(52px,6vw,96px);opacity:calc((1 - var(--po)) * 3.33)}
+.orbs.frente .face svg{width:56%;height:56%}
+
+/* plano de trás: menores, desfocadas, mais lentas e mais apagadas.
+   o min() trava o teto em .55 — sem ele o calc estouraria 1 e o plano
+   de trás ficaria tão forte quanto o da frente */
+.orbs.tras .orb{
+  width:clamp(30px,3.6vw,60px);
+  opacity:min(.6, calc((1 - var(--po)) * 3.33));
+  filter:blur(.8px);
+}
+.orbs.tras .face svg{width:54%;height:54%;stroke-width:2.3}
+/* as duas mais distantes levam mais desfoque — profundidade de campo */
+.orb.b1,.orb.b4{filter:blur(1.7px)}
+/* o giro 3D fica só no plano da frente. girando DENTRO de um elemento
+   com filter:blur, o navegador refaz o borrão a cada quadro, para
+   sempre — e nessas peças, pequenas e desfocadas, ninguém enxerga o
+   giro mesmo. */
+.orbs.tras .coin{animation:none}
+
+/* DISTRIBUIÇÃO: 3 à esquerda, 2 à direita.
+   b1 e b4 ficam METADE atrás do celular (z-index 4 contra 14 dele) —
+   é o encaixe que cria a profundidade. as outras ficam na margem. */
+/* TRÊS peças: 2 à esquerda, 1 à direita.
+   --sp é calibrado para cada uma SAIR pela borda de cima antes de
+   sumir. antes as de trás andavam 280-460px num viewport de ~900px:
+   nunca saíam de quadro, só apagavam no lugar — e ficar desbotando
+   parado é o que dava a impressão de peça sobrando na tela. */
+.orb.f1{left:3.5%; top:50%;--sp:900;--ry:-30deg;--rx:15deg;--k:1;   --dur:7s;  animation-delay:0s}
+/* b1 fica centrada NA borda do celular: metade some atrás dele.
+   b4 fica no MEIO DA MARGEM — o `* .5` coloca a borda direita dela na
+   metade do vão entre o aparelho e a beirada da tela, então ela
+   acompanha a proporção em qualquer largura de janela. */
+.orb.b1{left:var(--borda);            --tx:-50%; top:17%;--sp:620;--ry:-16deg;--rx:9deg; --k:1.06;--dur:9s;  animation-delay:-1.2s}
+.orb.b4{right:calc(var(--borda) * .5);           top:66%;--sp:820;--ry:-36deg;--rx:13deg;--k:1.12;--dur:7.6s;animation-delay:-6.4s}
+
+@media(max-width:1100px){.orb.b4{display:none}}
+@media(max-width:760px){.orbs{display:none}}
+
+/* --- FRASES GRANDES DE FUNDO (o "Chat. Pay. Confirm." deles) ---
+   tipografia solta, sem pílula nem fundo.
+
+   comandadas pelo MESMO --pa da conversa, com os limiares idênticos
+   aos dos balões (.20 / .34 / .48) — cada frase nasce junto com uma
+   mensagem, não numa fase separada.
+
+   o empilhamento sobe sem uma frase precisar enxergar a outra: cada
+   uma sobe continuamente com --pa a uma taxa própria (--dist). a que
+   entrou primeiro sobe mais, a última quase nada — o efeito lido é o
+   de uma pilha empurrada para cima. */
+.frases{position:absolute;inset:0;z-index:19;pointer-events:none}
+.frase{
+  --l:clamp(0, calc((var(--pa) - var(--t)) * 5), 1);
+  position:absolute;white-space:nowrap;
+  font-size:clamp(30px,4.6vw,72px);
+  font-weight:600;letter-spacing:-.045em;line-height:1;
+  opacity:calc(var(--l) * (1 - var(--p4)));
+  transform:translateY(calc((1 - var(--l)) * .55em - var(--pa) * var(--dist) * 1em));
+}
+.frase.f1{--t:.20; --dist:2.3; left:5%;  top:44%}
+.frase.f2{--t:.34; --dist:1.4; right:5%; top:62%}
+.frase.f3{--t:.48; --dist:.5;  left:9%;  top:80%}
+@media(max-width:900px){
+  .frase{font-size:clamp(24px,6.4vw,40px)}
+  .frase.f1{left:4%;top:38%}
+  .frase.f2{right:4%;top:56%}
+  .frase.f3{left:6%;top:74%}
+}
+
+/* VINHETA: elipse deslocada para cima (34%), acompanhando o brilho.
+   fica ACIMA do celular de propósito — na referência os cantos da
+   moldura também escurecem, é isso que assenta o aparelho na cena em
+   vez de deixá-lo recortado. o miolo é transparente até 38%, então
+   nem a tela nem o texto perdem contraste. */
+/* DUAS camadas fixas em fusão cruzada, em vez de um gradiente com as
+   paradas em calc(--pf). interpolando as paradas, o navegador tinha
+   que REGERAR um gradiente de tela cheia a cada quadro — era a
+   repintura mais cara da página. assim cada camada é rasterizada uma
+   vez e só a opacidade varia, que o compositor resolve sozinho. */
+.vinheta{
+  position:absolute;inset:0;z-index:17;pointer-events:none;
+  will-change:opacity;
+  background:radial-gradient(ellipse 66% 72% at 50% 28%,
+    transparent 42%,
+    rgba(0,0,0,.3) 60%,
+    rgba(0,0,0,.68) 76%,
+    rgba(0,0,0,.95) 86%,
+    #000 96%);
+  opacity:calc(1 - var(--pf));
+}
+/* estado fechado: elipse menor e mais baixa, abraçando o celular */
+.vinheta.fechada{
+  background:radial-gradient(ellipse 50% 74% at 50% 42%,
+    transparent 34%,
+    rgba(0,0,0,.3) 50%,
+    rgba(0,0,0,.68) 66%,
+    rgba(0,0,0,.95) 78%,
+    #000 90%);
+  opacity:var(--pf);
+}
+.fade-mask{
+  position:absolute;inset:auto 0 0 0;height:26vh;z-index:18;pointer-events:none;
+  background:linear-gradient(transparent,var(--bg) 82%);
+}
+
+.hero-big{
+  position:absolute;left:50%;top:50%;z-index:24;translate:-50% -50%;
+  width:min(1000px,92vw);text-align:center;
+  font-size:clamp(30px,5.6vw,76px);font-weight:500;line-height:1.12;letter-spacing:-.04em;
+  opacity:var(--p4);
+  transform:translateY(calc(28px - 28px * var(--p4)));
+  pointer-events:none;
+}
+
+/* ============================================================
+   RESTO DA PÁGINA
+   ============================================================ */
+section{position:relative;z-index:2}
+.strip{border-block:1px solid var(--line);padding:26px 0;margin-top:-1px}
+.strip .container{display:flex;align-items:center;justify-content:center;gap:clamp(24px,5vw,64px);flex-wrap:wrap}
+.strip span{color:#57575c;font-weight:700;font-size:clamp(14px,1.6vw,19px);letter-spacing:-.01em}
+
+.features{padding:clamp(70px,11vw,140px) 0}
+.sec-head{text-align:center;max-width:680px;margin:0 auto clamp(40px,6vw,70px)}
+.sec-head h2{font-size:clamp(28px,4.4vw,54px);font-weight:600;letter-spacing:-.035em;line-height:1.1}
+.sec-head p{margin-top:16px;color:var(--muted);font-size:17px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.feat{
+  border:1px solid var(--line);border-radius:22px;padding:28px;
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
+  transition:border-color .2s ease,transform .2s ease;
+}
+.feat:hover{border-color:rgba(91,227,255,.3);transform:translateY(-3px)}
+.feat .ico{
+  width:44px;height:44px;border-radius:13px;margin-bottom:18px;
+  display:grid;place-items:center;font-size:20px;
+  background:rgba(46,155,255,.12);border:1px solid rgba(91,227,255,.22);
+}
+.feat h3{font-size:19px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+.feat p{color:var(--muted);font-size:15px}
+
+.cta{padding:0 0 clamp(80px,12vw,150px)}
+.cta-box{
+  border:1px solid var(--line);border-radius:32px;
+  padding:clamp(40px,7vw,80px) 28px;text-align:center;
+  background:
+    radial-gradient(120% 130% at 50% 0%,rgba(46,155,255,.18),transparent 60%),
+    linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01));
+}
+.cta-box h2{font-size:clamp(28px,4.6vw,56px);font-weight:600;letter-spacing:-.04em;line-height:1.08}
+.cta-box p{color:var(--muted);margin:18px auto 30px;max-width:460px}
+
+footer{border-top:1px solid var(--line);padding:28px 0;color:#5b5b60;font-size:14px}
+footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+/* ajustes de tela */
+@media(max-height:700px){:root{--phone-end:58vh;--phone-top:12vh}}
+@media(max-width:900px){:root{--phone-start:min(150vh,170vw);--phone-end:60vh}}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  /* a conversa é toda dirigida por scroll, não por animação —
+     nada a desligar aqui além do movimento das peças */
+  /* .coin é quem gira — .orb sozinho não cobre o movimento */
+  .orb,.coin{animation:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="brand">
+    <!-- ÍCONE DESLIGADO: wordmark puro, como no FacilPay.
+         para trazer de volta, é só tirar as duas linhas de comentário abaixo.
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#5BE3FF"/>
+          <stop offset=".6" stop-color="#2E9BFF"/>
+          <stop offset="1" stop-color="#0B5FD8"/>
+        </linearGradient>
+      </defs>
+      <rect x="5.7" y="1.7" width="12.6" height="20.6" rx="3.3" stroke="url(#lg)" stroke-width="1.9"/>
+      <path fill="url(#lg)" d="M12 7.4 16.1 9.8 16.1 14.5 12 16.9 7.9 14.5 7.9 9.8Z"/>
+    </svg>
+    -->
+    <span class="brand-text">
+      <b>fix</b>
+      <i><span>c</span><span>e</span><span>l</span><span>l</span></i>
+    </span>
+  </div>
+  <a href="#contato" class="btn btn-plain">Testar grátis</a>
+</nav>
+
+<!-- =========================== HERO =========================== -->
+<div class="hero" id="hero">
+  <div class="hero-sticky">
+    <canvas id="particles"></canvas>
+    <div id="sonda-fim"></div><div id="sonda-topo"></div>
+    <div class="glow"></div>
+    <div class="glow-core"></div>
+
+    <!-- celular -->
+    <div class="phone-wrap">
+      <span class="phone-halo"></span>
+      <div class="phone">
+        <span class="side esq acao"></span>
+        <span class="side esq vol-mais"></span>
+        <span class="side esq vol-menos"></span>
+        <span class="side dir power"></span>
+        <span class="antena a1"></span>
+        <span class="antena a2"></span>
+
+        <div class="screen">
+          <div class="island"><i class="cam"></i></div>
+
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-dir">
+              <span class="barras"><i></i><i></i><i></i><i></i></span>
+              <svg class="wifi" viewBox="0 0 20 14" aria-hidden="true">
+                <path fill="#fff" d="M10 12.9 7.3 9.8a4.1 4.1 0 0 1 5.4 0z"/>
+                <path fill="#fff" opacity=".92" d="M15.1 7.4a7.7 7.7 0 0 0-10.2 0L3.2 5.5a10.3 10.3 0 0 1 13.6 0z"/>
+              </svg>
+              <span class="bateria"><span></span></span>
+            </span>
+          </div>
+          <div class="home-bar"></div>
+
+          <!-- A CONVERSA: cliente elogiando o serviço -->
+          <div class="app">
+            <div class="chat-topo">
+              <span class="voltar">&lsaquo;</span>
+              <span class="avatar">🙂</span>
+              <span class="nome">Marina Rocha</span>
+              <span class="mais">&#8942;</span>
+            </div>
+
+            <div class="msgs">
+              <div class="msg dela" style="--t:.20">
+                Acabei de buscar o aparelho. Ficou perfeito!
+                <span class="hora">14:02</span>
+              </div>
+              <div class="msg dela" style="--t:.34">
+                A tela ficou melhor que a original. E entregaram um dia antes!
+                <span class="hora">14:02</span>
+              </div>
+              <div class="msg nossa" style="--t:.48">
+                Que bom, Marina! Sua garantia de 90 dias já está ativa.
+                <span class="hora">14:05</span>
+              </div>
+              <div class="msg dela" style="--t:.62">
+                Já indiquei vocês pro meu irmão!
+                <span class="hora">14:07</span>
+              </div>
+            </div>
+
+            <div class="barra-input">
+              <span class="mais-btn">+</span>
+              <span class="campo">Escreva uma mensagem<span>🙂</span></span>
+              <span class="enviar">&#10148;</span>
+            </div>
+          </div>
+
+          <!-- texto do hero: mora DENTRO da tela, junto com as cenas.
+               é o que garante que ele encolha na mesma proporção da moldura -->
+          <div class="hero-text">
+            <p class="hero-kicker">Sistema completo para assistência técnica de celular.</p>
+            <h1>Da bancada à entrega,<br><span class="blue-grad">num sistema só.</span></h1>
+            <div class="hero-actions">
+              <a href="#contato" class="btn btn-primary">Testar 14 dias grátis</a>
+              <a href="#recursos" class="btn btn-ghost">Ver como funciona</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- peças de TRÁS: as bolinhas passam na frente delas -->
+    <div class="orbs tras">
+      <span class="orb b1"><span class="coin"><span class="edge"></span><span class="disc"><span class="face">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><!-- bateria -->
+          <rect x="2.2" y="7" width="16" height="10" rx="2.6"/>
+          <path d="M20.8 10.6v2.8"/>
+          <rect class="cheio" x="4.4" y="9.2" width="7.2" height="5.6" rx="1.1"/>
+        </svg>
+      </span></span></span></span>
+      <span class="orb b4"><span class="coin"><span class="edge"></span><span class="disc"><span class="face">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><!-- parafuso philips -->
+          <circle cx="12" cy="12" r="8"/>
+          <path d="M8.8 8.8l6.4 6.4M15.2 8.8l-6.4 6.4"/>
+        </svg>
+      </span></span></span></span>
+    </div>
+
+    <!-- peças da FRENTE: as bolinhas passam atrás delas -->
+    <div class="orbs frente">
+      <span class="orb f1"><span class="coin"><span class="edge"></span><span class="disc"><span class="face">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><!-- chave inglesa -->
+          <path class="cheio" d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+        </svg>
+      </span></span></span></span>
+    </div>
+
+    <div class="painel-scrim"></div>
+
+    <!-- CARD DE AVALIAÇÃO: fora da .screen, sobreposto ao celular.
+         é o que permite ele ultrapassar as bordas do aparelho -->
+    <div class="painel">
+      <div class="painel-cab">
+        <span class="painel-ico">M</span>
+        <div>
+          <div class="l1">Marina Rocha</div>
+          <div class="l2">
+            <span class="estrelas">★★★★★</span>
+            <span class="quando">há 2 dias</span>
+          </div>
+        </div>
+        <span class="painel-selo">✓ Verificado</span>
+      </div>
+      <p class="painel-msg">Ficou perfeito e entregaram antes do prazo. Melhor assistência da cidade.</p>
+    </div>
+
+    <!-- frases grandes de fundo -->
+    <div class="frases">
+      <span class="frase f1 text-grad">Recebeu.</span>
+      <span class="frase f2 text-grad">Consertou.</span>
+      <span class="frase f3 blue-grad">Entregou.</span>
+    </div>
+
+    <h2 class="hero-big text-grad">
+      Sua oficina inteira<br>
+      <span class="blue-grad">na palma da mão.</span>
+    </h2>
+
+    <div class="vinheta"></div>
+    <div class="vinheta fechada"></div>
+    <div class="fade-mask"></div>
+  </div>
+</div>
+
+<!-- =========================== CONTEÚDO =========================== -->
+<section class="strip">
+  <div class="container">
+    <span>Tela Nova</span><span>CellDoctor</span><span>Reparo Já</span><span>Assistec</span><span>MobileFix</span>
+  </div>
+</section>
+
+<section class="features" id="recursos">
+  <div class="container">
+    <div class="sec-head">
+      <h2 class="text-grad">Da recepção ao pós-venda</h2>
+      <p>Um fluxo só: recebeu o aparelho, orçou, consertou, avisou o cliente, entregou.</p>
+    </div>
+    <div class="grid">
+      <div class="feat">
+        <div class="ico">🧾</div>
+        <h3>Ordem de serviço digital</h3>
+        <p>Defeito, IMEI, fotos de entrada e checklist. Assinatura do cliente na tela, sem papel.</p>
+      </div>
+      <div class="feat">
+        <div class="ico">💬</div>
+        <h3>Aviso automático</h3>
+        <p>Orçamento pronto, aparelho consertado, peça chegou — o WhatsApp dispara sozinho.</p>
+      </div>
+      <div class="feat">
+        <div class="ico">🔩</div>
+        <h3>Estoque de peças</h3>
+        <p>Baixa automática ao usar na OS. Alerta quando o display mais vendido está acabando.</p>
+      </div>
+      <div class="feat">
+        <div class="ico">🛡️</div>
+        <h3>Garantia por IMEI</h3>
+        <p>Histórico completo do aparelho. Sabe na hora se aquele retorno está coberto ou não.</p>
+      </div>
+      <div class="feat">
+        <div class="ico">✅</div>
+        <h3>Orçamento com aprovação</h3>
+        <p>Cliente aprova por link, com data e hora registradas. Fim do "eu não autorizei isso".</p>
+      </div>
+      <div class="feat">
+        <div class="ico">📊</div>
+        <h3>Relatório por técnico</h3>
+        <p>Quantas OS cada um fechou, tempo médio de reparo e taxa de retorno na garantia.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="contato">
+  <div class="container">
+    <div class="cta-box">
+      <h2 class="text-grad">Tire a sua oficina<br>do <span class="blue-grad">caderninho</span></h2>
+      <p>14 dias grátis. Sem cartão, sem fidelidade, migração dos seus dados inclusa.</p>
+      <a href="#" class="btn btn-primary" style="height:50px;padding:0 28px;font-size:15px">Falar com a gente</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span>© 2026 FixCell</span>
+    <span>Feito para quem vive atrás da bancada.</span>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js"></script>
+<script>
+/* ---------- progresso de scroll do hero ---------- */
+(function(){
+  const hero  = document.getElementById('hero');
+  const root  = document.documentElement;
+  const text  = document.querySelector('.hero-text');
+  const fone  = document.querySelector('.phone-wrap');
+  const sFim  = document.getElementById('sonda-fim');
+  const sTopo = document.getElementById('sonda-topo');
+  const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+  const range = (p,a,b)=>clamp((p-a)/(b-a),0,1);
+
+  /* medidas do celular, recalculadas só no resize.
+     as sondas entregam --phone-end e --phone-top já em px, com os
+     media queries aplicados — nada de duplicar essa conta aqui. */
+  let escalaFinal = 1, deslocFinal = 0;
+  function medir(){
+    const inicio = fone.offsetHeight || 1;      /* = --phone-start */
+    const fim    = sFim.offsetHeight;           /* = --phone-end   */
+    const topo   = sTopo.offsetTop;             /* = --phone-top   */
+    escalaFinal = fim / inicio;
+    deslocFinal = (innerHeight - fim) / 2 - topo;
+  }
+
+  /* escrever variável CSS na raiz invalida o estilo do documento
+     inteiro. só escreve o que mudou de verdade. */
+  const anterior = {};
+  function def(nome, valor){
+    if(anterior[nome] === valor) return;
+    anterior[nome] = valor;
+    root.style.setProperty(nome, valor);
+  }
+  const ease  = t=>t*t*(3-2*t);
+
+  let ticking = false;
+  function update(){
+    ticking = false;
+    const total = hero.offsetHeight - window.innerHeight;
+    const p = total > 0 ? clamp((window.scrollY - hero.offsetTop)/total, 0, 1) : 0;
+
+    /* AGENDA DAS FASES — frações dos 1000vh de scroll útil.
+
+       o app entra ANTES do texto zerar (.09 contra .13). a sobreposição
+       é de propósito: a curva de suavização achata nas pontas, então
+       faixas encostadas deixam os dois perto de zero ao mesmo tempo e a
+       tela apaga. cruzando, a soma nunca chega perto de zero — e nenhum
+       dos dois fica legível enquanto o outro está visível.
+
+         fase              faixa           distância
+         celular encolhe   0    → .15       150vh
+         texto some        .04  → .13        90vh
+         peças sobem       0    → .18       180vh
+         CONVERSA+FRASES   .09  → .46       370vh   escalonadas juntas
+         foco no celular   .10  → .26       160vh   junto com a conversa
+         painel (entra)    .50  → .58
+         painel (sai)      .61  → .66              saída curta
+         cena limpa        .66  → .76              respiro
+         título final      .76  → .90
+
+       dentro de --pa tudo se escalona sozinho, pelo --t de cada
+       elemento (ver os blocos "A CONVERSA" e "FRASES" no CSS):
+         .00 cabeçalho e barra
+         .20 balão 1  +  "Recebeu."
+         .34 balão 2  +  "Consertou."
+         .48 resposta +  "Entregou."
+         .62 balão 3                                                   */
+    const pt = ease(range(p,.04,.13));
+    const p4 = ease(range(p,.76,.90));
+    const pEncolhe = ease(range(p,0,.15));
+
+    def('--p', pEncolhe.toFixed(4));
+    /* escala e deslocamento do celular: substituem a antiga animação
+       de height/top, que forçava layout a cada frame */
+    def('--pscale', (1 + (escalaFinal - 1) * pEncolhe).toFixed(4));
+    def('--pshift', (deslocFinal * pEncolhe).toFixed(1) + 'px');
+    def('--pt', pt.toFixed(4));
+    /* a conversa NÃO usa easing: cada rolada de roda tem que empurrar
+       a construção na mesma proporção, senão os balões chegam em
+       rajadas irregulares */
+    def('--pa', range(p,.09,.46).toFixed(4));
+    /* SEM easing também: parallax tem que responder direto ao giro da
+       roda. as peças somem em .18 e --po fica travado em 1 depois
+       disso — nenhuma volta a aparecer. */
+    def('--po', range(p,0,.18).toFixed(4));
+    /* a luz migra do topo para o aro JUNTO com a troca de conteúdo:
+       o texto branco sai (.13) e a conversa entra (.09) — é nesse
+       momento que o celular precisa assumir o foco, não depois. */
+    def('--pf', ease(range(p,.10,.26)).toFixed(4));
+    /* PULSO: sobe, segura entre .60 e .66, e volta a zero. o painel
+       tem um scrim de tela cheia — ele precisa sair antes das frases,
+       senão apagaria todas elas. */
+    /* saída curta e logo após a pausa: antes o card segurava até .66 e
+       levava mais 8% para sumir, e esses 60vh de espera é que davam a
+       sensação de demora até a cena limpa aparecer. */
+    const pp = ease(range(p,.50,.58)) - ease(range(p,.61,.66));
+    def('--pp', pp.toFixed(4));
+    def('--p4', p4.toFixed(4));
+
+    /* botões invisíveis não podem receber clique */
+    const clicavel = pt < .5 ? 'auto' : 'none';
+    if(text.style.pointerEvents !== clicavel) text.style.pointerEvents = clicavel;
+  }
+  function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(update); } }
+
+  addEventListener('scroll', onScroll, {passive:true});
+  addEventListener('resize', () => { medir(); onScroll(); });
+  medir(); update();
+
+  /* ---------- rolagem suave (mesma configuração do site de referência:
+       Lenis, duration 1.5, easing exponencial, só na roda) ----------
+     se o script não carregar, a página continua funcionando com a
+     rolagem nativa — nada aqui é pré-requisito. */
+  if(window.Lenis && !matchMedia('(prefers-reduced-motion:reduce)').matches){
+    const lenis = new Lenis({
+      /* a referência usa 1.5, que assenta devagar demais aqui.
+         1.05 mantém a suavidade e devolve a resposta ao giro da roda. */
+      duration:1.05,
+      easing:t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
+      orientation:'vertical',
+      smoothWheel:true,
+      wheelMultiplier:1.45,     /* cada giro cobre mais distância */
+      syncTouch:false,          /* toque fica nativo, como no deles */
+      touchMultiplier:1.5
+    });
+    /* o progresso passa a ser calculado no mesmo quadro em que a
+       rolagem é interpolada — sem isso o hero fica um frame atrasado */
+    lenis.on('scroll', update);
+    (function laco(t){ lenis.raf(t); requestAnimationFrame(laco); })(0);
+  }
+})();
+
+/* ---------- partículas de fundo, com parallax de mouse ----------
+   duas camadas de profundidade: a da frente reage 3x mais ao mouse
+   que a de trás, o que cria a sensação de espaço. cada bolinha faz um
+   passeio aleatório lento (escolhe um alvo perto, caminha até ele em
+   5-20s, escolhe outro) — não é velocidade constante. */
+(function(){
+  const c = document.getElementById('particles');
+  if(!c || matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const ctx = c.getContext('2d');
+
+  const CAMADAS = [
+    {n:150, cor:'rgba(255,255,255,.30)', d:2.4, vel:[10,20], passo:[80,140],  parallax:10},
+    {n:50,  cor:'rgba(255,255,255,.60)', d:3.8, vel:[5,10],  passo:[100,200], parallax:30}
+  ];
+  const SUAVIZACAO = .6;   /* segundos para o parallax alcançar o mouse */
+  const ZONA_MORTA = .5;   /* px: evita reiniciar a interpolação à toa   */
+
+  let w = 0, h = 0, bolinhas = [];
+  const mouse = {x:0, y:0};
+
+  function Bolinha(cfg){
+    this.cfg = cfg;
+    this.x = Math.random()*w; this.y = Math.random()*h;
+    this.ox = this.oy = this.sox = this.soy = this.tox = this.toy = 0;
+    this.pt = 1;
+    this.novoAlvo();
+  }
+  Bolinha.prototype.novoAlvo = function(){
+    const [min,max] = this.cfg.passo;
+    const dx = (Math.random()-.5)*(max-min) + (Math.random()>.5 ? min : -min);
+    const dy = (Math.random()-.5)*(max-min) + (Math.random()>.5 ? min : -min);
+    this.sx = this.x; this.sy = this.y;
+    this.tx = Math.max(0, Math.min(this.x+dx, w));
+    this.ty = Math.max(0, Math.min(this.y+dy, h));
+    this.t = 0;
+    const [vmin,vmax] = this.cfg.vel;
+    this.dur = Math.random()*(vmax-vmin) + vmin;
+  };
+  Bolinha.prototype.passo = function(dt){
+    this.t += dt/this.dur;
+    const t = Math.min(this.t, 1);
+    this.x = this.sx + (this.tx-this.sx)*t;
+    this.y = this.sy + (this.ty-this.sy)*t;
+    if(t >= 1) this.novoAlvo();
+
+    /* o "centro" é w/4, não w/2 — deslocado de propósito, deixa a
+       resposta assimétrica e mais viva que um parallax centrado */
+    const cx = w/4, cy = h/4;
+    const alvoX = (mouse.x-cx)/cx * this.cfg.parallax;
+    const alvoY = (mouse.y-cy)/cy * this.cfg.parallax;
+
+    if(Math.abs(this.tox-alvoX) > ZONA_MORTA || Math.abs(this.toy-alvoY) > ZONA_MORTA){
+      this.sox = this.ox; this.soy = this.oy;
+      this.tox = alvoX;   this.toy = alvoY;
+      this.pt = 0;
+    }
+    if(this.pt < 1){
+      this.pt += dt/SUAVIZACAO;
+      const e = Math.sin(Math.min(this.pt,1) * Math.PI/2);
+      this.ox = this.sox + (this.tox-this.sox)*e;
+      this.oy = this.soy + (this.toy-this.soy)*e;
+    }
+  };
+
+  function resize(){
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    w = c.clientWidth; h = c.clientHeight;
+    if(!w || !h) return;
+    c.width = w*dpr; c.height = h*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    if(!bolinhas.length){ mouse.x = w/2; mouse.y = h/2; }
+    /* densidade proporcional à tela, sem exagerar nos extremos */
+    const escala = Math.max(.6, Math.min((w*h)/(1440*900), 1.8));
+    bolinhas = [];
+    for(const cfg of CAMADAS)
+      for(let i = 0; i < Math.round(cfg.n*escala); i++) bolinhas.push(new Bolinha(cfg));
+  }
+
+  const raiz = document.documentElement;
+  let ultimo = performance.now(), rodando = false;
+  function frame(agora){
+    if(!rodando) return;
+    const dt = Math.min((agora-ultimo)/1000, .1);   /* trava o dt se a aba ficou parada */
+    ultimo = agora;
+    /* depois que --pf chega a 1 o canvas está em opacity 0, mas o laço
+       continuava desenhando 164 círculos por quadro. ler a propriedade
+       inline é barato — não dispara recálculo de estilo. */
+    if(parseFloat(raiz.style.getPropertyValue('--pf')) >= .995){
+      requestAnimationFrame(frame);
+      return;
+    }
+    if(w && h){
+      ctx.clearRect(0,0,w,h);
+      for(const b of bolinhas){
+        b.passo(dt);
+        ctx.beginPath();
+        ctx.arc(b.x + b.ox, b.y + b.oy, b.cfg.d/2, 0, Math.PI*2);
+        ctx.fillStyle = b.cfg.cor;
+        ctx.fill();
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  document.addEventListener('mousemove', e => {
+    const r = c.getBoundingClientRect();
+    mouse.x = e.clientX - r.left;
+    mouse.y = e.clientY - r.top;
+  }, {passive:true});
+  addEventListener('resize', resize);
+
+  /* só anima enquanto o hero está na tela. sem isto o loop roda para
+     sempre — inclusive com a página rolada lá embaixo, onde o canvas
+     nem aparece — queimando bateria à toa. */
+  function liga(){
+    if(rodando) return;
+    rodando = true; ultimo = performance.now();
+    requestAnimationFrame(frame);
+  }
+  new IntersectionObserver(
+    ([e]) => e.isIntersecting ? liga() : (rodando = false)
+  ).observe(document.querySelector('.hero-sticky'));
+
+  resize();
+  liga();
+})();
+</script>
+</body>
+</html>
