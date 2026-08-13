@@ -930,7 +930,12 @@ section{position:relative;z-index:2}
      bem onde a máscara é opaca e a perspectiva é maior. a direita não
      mostrava o defeito porque desliza para o outro lado e a sobra
      descoberta caía fora da parede. */
-  position:absolute;inset:0;left:-190px;width:calc(100% + 380px);
+  /* SOBRA DE DUAS CÉLULAS de cada lado, não uma.
+     dois deslocamentos se somam no mesmo sentido: a deriva ambiente vai
+     até 190px e o avanço do scroll até mais 190px. com sobra de apenas
+     uma célula, o pico de 380px descobria a borda de perto e abria um
+     buraco. margem = soma dos dois máximos. */
+  position:absolute;inset:0;left:-380px;width:calc(100% + 760px);
   /* --sentido compensa o eixo local espelhado das duas paredes */
   transform:translateX(calc(var(--tunel,0) * var(--sentido,1) * 1px));
   /* DERIVA AMBIENTE — as linhas seguem andando devagar com a tela
