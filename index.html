@@ -96,8 +96,12 @@ a{color:inherit;text-decoration:none}
 /* ============================================================
    NAV
    ============================================================ */
+/* ABSOLUTE, não fixed: a marca e o CTA ficam no topo do DOCUMENTO e vão
+   embora assim que a pessoa rola. fixos, competiam com o hero inteiro —
+   e no fecho verde, com a tela toda tomada, sobravam dois textos soltos
+   flutuando por cima. */
 .nav{
-  position:fixed;inset:0 0 auto 0;z-index:60;
+  position:absolute;inset:0 0 auto 0;z-index:60;
   display:flex;align-items:center;justify-content:space-between;gap:24px;
   padding:18px 0;width:min(1180px,92vw);margin-inline:auto;
 }
