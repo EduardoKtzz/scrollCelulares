@@ -1020,16 +1020,28 @@ section{position:relative;z-index:2}
      deslizavam para o lado, um a um. agora --pc é uma linha do tempo
      única para o trio inteiro:
 
-       --chega  0 → 1   os três sobem do fim do corredor até o foco
-       (segura)         .54 a .70 de --pc, em foco pleno
+       --chega  0 → 1   sobem do fim do corredor até o foco
+       (segura)         .56 a .70 de --pc, os três em foco pleno
        --sai    0 → 1   passam pela câmera e somem
 
      a posição lateral virou fixa (--off, de --i): eles nascem lado a
-     lado e assim ficam. quem se move é o Z. */
-  --chega:clamp(0, calc(var(--pc,0) * 1.85), 1);
-  --sai:clamp(0, calc((var(--pc,0) - .70) * 3.34), 1);
+     lado e assim ficam. quem se move é o Z.
+
+     AS DUAS PONTAS SÃO ESCALONADAS, com critérios diferentes:
+
+     na ENTRADA, pela ordem do trio (--i): o primeiro parte de zero,
+     para o corredor nunca aparecer vazio, e os outros vêm atrás de
+     .13 em .13. os três terminam de chegar em .56 e seguem juntos.
+
+     na SAÍDA, pela distância ao CENTRO (--centro): o do meio sai
+     primeiro e os dois laterais depois, juntos. o critério não é o
+     índice — é a posição no leque, que é o que se enxerga. */
+  --chega:clamp(0, calc((var(--pc,0) - var(--i,1) * .13) * 3.33), 1);
+  --sai:clamp(0, calc((var(--pc,0) - .70 - var(--centro) * .08) * 4.5), 1);
   /* -1 / 0 / +1 — o lugar de cada um no leque */
   --off:calc(var(--i,1) - 1);
+  /* 1 / 0 / 1 — distância ao centro. max(a,-a) é o |a| */
+  --centro:max(var(--off), calc(var(--off) * -1));
   /* padrões OBRIGATÓRIOS: sem eles o var() é inválido e derruba o
      transform inteiro dos três, empilhando tudo no mesmo ponto */
   --tilt:0deg; --roll:0deg; --znudge:0px;
@@ -1637,9 +1649,10 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     const bruto = alvo > 0 ? (window.scrollY - modulos.offsetTop) / alvo : 0;
     const m = clamp(bruto, 0, 1);
     /* a seção é só dos cards agora, então eles usam quase tudo dela.
-       as margens nas pontas existem para o trio não estar já chegando
-       quando a seção prende no topo, nem sumir antes de ela soltar. */
-    def('--pc', range(m,.08,.94).toFixed(4));
+       começa em .03 e não em .08: o primeiro card precisa já estar a
+       caminho quando o corredor prende no topo, senão a tela fica
+       preta e vazia por um trecho. */
+    def('--pc', range(m,.03,.94).toFixed(4));
     /* AVANÇO DO TÚNEL — amarrado ao scroll, não ao relógio.
        o resto (% 190) é o período exato da grade, então o valor volta
        a zero sem emenda e o avanço é infinito. o fator 1.6 é a marcha:
