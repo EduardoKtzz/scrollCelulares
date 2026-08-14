@@ -46,6 +46,7 @@
 
   /* progressos de scroll, escritos pelo JS */
   --p:0;    /* celular encolhe                     */
+  --ptexto:0px; /* compensação vertical do texto do hero (ver .hero-text) */
   --pt:0;   /* texto do hero SAI                   */
   --pa:0;   /* interface do app ENTRA (depois do texto sumir) */
   --po:0;   /* peças flutuantes sobem                        */
@@ -620,9 +621,15 @@ a{color:inherit;text-decoration:none}
    o celular ia até .24x. taxas diferentes = em algum ponto do meio o texto
    ficava mais largo que o aparelho e vazava pelas laterais.
    em cqw/cqh ele acompanha a moldura exatamente, sem número mágico. */
+/* o 17cqh é medido do TOPO da tela, e o aparelho encolhe rumo ao próprio
+   topo (transform-origin:50% 0). então esse ponto desaba junto com a
+   tela: ia de 312px abaixo da borda para 95px, e o texto SUBIA 200px
+   enquanto apagava — contra o celular, que desce para o centro.
+   --ptexto empurra de volta, em px locais da tela, o tanto exato que
+   cancela essa subida. a conta está no update(). */
 .hero-text{
   position:absolute;left:13%;right:13%;top:17cqh;z-index:4;
-  translate:0 -50%;
+  translate:0 calc(-50% + var(--ptexto,0px));
   text-align:center;
   /* 6.8cqw e 74% de largura (eram 5.8cqw e 62%). na referência o texto
      ocupa ~72% da tela com a fonte em ~7.4cqw — o meu estava pequeno e
@@ -1464,6 +1471,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   const root  = document.documentElement;
   const text  = document.querySelector('.hero-text');
   const fone  = document.querySelector('.phone-wrap');
+  const moldura = document.querySelector('.phone');
+  const tela  = document.querySelector('.screen');
   const sFim  = document.getElementById('sonda-fim');
   const sTopo = document.getElementById('sonda-topo');
   const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
@@ -1472,13 +1481,20 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   /* medidas do celular, recalculadas só no resize.
      as sondas entregam --phone-end e --phone-top já em px, com os
      media queries aplicados — nada de duplicar essa conta aqui. */
-  let escalaFinal = 1, deslocFinal = 0;
+  let escalaFinal = 1, deslocFinal = 0, ancoraTexto = 0;
   function medir(){
     const inicio = fone.offsetHeight || 1;      /* = --phone-start */
     const fim    = sFim.offsetHeight;           /* = --phone-end   */
     const topo   = sTopo.offsetTop;             /* = --phone-top   */
     escalaFinal = fim / inicio;
     deslocFinal = (innerHeight - fim) / 2 - topo;
+    /* distância do CENTRO do texto até o topo do .phone-wrap, em px
+       locais (antes da escala). o translate:-50% cancela a própria
+       altura, então o centro cai exatamente no `top` — e ler o `top`
+       resolvido evita repetir o 17cqh aqui. offsets são layout: não
+       enxergam o scale, que é justamente o que se quer. */
+    ancoraTexto = tela.offsetTop + moldura.offsetTop
+                + parseFloat(getComputedStyle(text).top);
   }
 
   /* escrever variável CSS na raiz invalida o estilo do documento
@@ -1540,8 +1556,16 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     def('--p', pEncolhe.toFixed(4));
     /* escala e deslocamento do celular: substituem a antiga animação
        de height/top, que forçava layout a cada frame */
-    def('--pscale', (1 + (escalaFinal - 1) * pEncolhe).toFixed(4));
+    const escala = 1 + (escalaFinal - 1) * pEncolhe;
+    def('--pscale', escala.toFixed(4));
     def('--pshift', (deslocFinal * pEncolhe).toFixed(1) + 'px');
+    /* SEGURA O TEXTO PARADO enquanto o aparelho encolhe e desce.
+       a posição final na tela é  topo + deslocFinal*pe + (L + c) * escala.
+       igualando a  topo + L  (onde ele começa) e isolando o c:
+           c = (L - deslocFinal * pe) / escala - L
+       é exato, não aproximação — o texto apaga sem sair do lugar. */
+    def('--ptexto',
+        ((ancoraTexto - deslocFinal * pEncolhe) / escala - ancoraTexto).toFixed(1) + 'px');
     def('--pt', pt.toFixed(4));
     /* a conversa NÃO usa easing: cada rolada de roda tem que empurrar
        a construção na mesma proporção, senão os balões chegam em
