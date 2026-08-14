@@ -878,17 +878,31 @@ section{position:relative;z-index:2}
 }
 /* dissolve o túnel no topo e na base, para ele não encostar a seco nas
    seções vizinhas. gradiente simples, não máscara: máscara obrigaria a
-   compor a superfície inteira fora da tela outra vez. */
+   compor a superfície inteira fora da tela outra vez.
+
+   7%, não 22%. a 22% este véu comia 198px de 900 em cima e embaixo — e
+   como ele fica ACIMA das paredes (z-index 1 contra auto), era ele, e
+   não a geometria, que apagava as linhas nas pontas. a parede cobre a
+   altura inteira sozinha: no ponto mais fundo que a máscara ainda deixa
+   ver (78%), a meia-altura projetada dá 1,2·vh × 820/1678 = 0,586·vh,
+   contra os 0,5·vh necessários. 7% deixa a linha chegar na borda e
+   ainda mata o corte seco na emenda entre as seções. */
 .modulos-sticky::before{
   content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
   background:
-    linear-gradient(180deg,var(--bg) 0,transparent 22%),
-    linear-gradient(0deg,  var(--bg) 0,transparent 22%);
+    linear-gradient(180deg,var(--bg) 0,transparent 7%),
+    linear-gradient(0deg,  var(--bg) 0,transparent 7%);
 }
 
 /* --- TÚNEL ---
    duas paredes giradas 90° a partir das bordas: com perspective no pai,
-   elas fogem para o fundo e as linhas convergem no ponto de fuga. */
+   elas fogem para o fundo e as linhas convergem no ponto de fuga.
+
+   DUAS, e não quatro. cheguei a pôr teto e chão para fechar o vão preto
+   do meio — geometricamente funciona, a tela fica toda tomada —, mas o
+   corredor fechado engole a cena: as linhas cruzam por trás dos cards e
+   disputam a leitura com eles. com só as laterais, o escuro no miolo é
+   o que dá lugar aos cards. */
 .tunel{
   position:absolute;inset:0;
   perspective:820px;perspective-origin:50% 50%;
