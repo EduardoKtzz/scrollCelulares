@@ -61,11 +61,13 @@ Ficam registradas porque são fáceis de reintroduzir sem perceber:
 - **Percentuais em `inset` não são simétricos**: topo/base resolvem contra a
   altura e as laterais contra a largura. O bezel do celular corrige isso
   multiplicando pela razão de aspecto.
-- **Quem dá tempo de leitura é a pausa, não a entrada.** Uma fase que termina
-  de entrar no último quadro da seção nunca é vista parada — lê-se só enquanto
-  ela ainda aparece, e a seção seguinte já toma a tela. O título final entra
-  em 37vh e depois SEGURA por 62vh, com a mesma variável: passado o fim da
-  faixa ela fica em 1 e o descanso sai de graça.
+- **Quem dá tempo de leitura é a pausa, não a entrada.** Uma imagem que termina
+  de se formar no instante em que a próxima começa nunca é vista pronta. Vale
+  duas vezes no fecho do hero: a tela verde do check segura 31vh antes de o
+  título abrir, e o título segura 67vh antes de a seção acabar. Nenhuma das
+  duas custou variável nova — no fim da faixa a variável fica grudada em 1, e
+  a pausa é só o intervalo vazio até a faixa seguinte começar (`--pv` fecha em
+  .793, `--p4` só abre em .840).
 - **O progresso de uma seção travada (`sticky`) fica em zero enquanto ela
   entra na tela.** São 100vh de rolagem em que já se vê a seção e o relógio
   dela ainda não começou. Antecipar o início do `range()` não adianta — no

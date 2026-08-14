@@ -142,11 +142,11 @@ a{color:inherit;text-decoration:none}
      21 painel de avaliação · 24 título final
    (o texto do hero fica DENTRO da .screen, não neste empilhamento)
    ============================================================ */
-/* 720vh. mudar esta altura reescala TODAS as fases de uma vez, porque
+/* 750vh. mudar esta altura reescala TODAS as fases de uma vez, porque
    elas são frações dela — por isso, sempre que uma fase precisa de mais
    ou menos tempo, as outras são recompensadas nas frações para manter a
    distância absoluta. ver AGENDA DAS FASES no script. */
-.hero{position:relative;height:720vh}
+.hero{position:relative;height:750vh}
 .hero-sticky{position:sticky;top:0;height:100vh;overflow:hidden}
 
 /* z-index 5: acima do brilho e das peças de trás, abaixo das da frente —
@@ -1562,26 +1562,29 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
        da direita é o que realmente importa.
 
          fase              faixa         distância
-         celular encolhe   0    → .172    107vh
-         texto some        .045 → .145     62vh
-         peças sobem       0    → .199
-         CONVERSA+FRASES   .099 → .434    208vh
-         foco no celular   .108 → .271
-         painel (entra)    .470 → .533     39vh
-         painel (SEGURA)   .533 → .632     61vh   destaque do card
-         painel (sai)      .632 → .673     25vh
-         FECHO VERDE       .677 → .831     95vh
-         título final      .840 → .900     37vh
-         título (SEGURA)   .900 → 1        62vh   ← ele precisa PARAR
+         celular encolhe   0    → .164    107vh
+         texto some        .043 → .138     62vh
+         peças sobem       0    → .190
+         CONVERSA+FRASES   .094 → .414    208vh
+         foco no celular   .103 → .258
+         painel (entra)    .448 → .508     39vh
+         painel (SEGURA)   .508 → .603     62vh   destaque do card
+         painel (sai)      .603 → .642     25vh
+         FECHO VERDE       .646 → .793     96vh
+         verde (SEGURA)    .793 → .840     31vh   ← a tela do check
+         título final      .840 → .897     37vh
+         título (SEGURA)   .897 → 1        67vh   ← ele precisa PARAR
 
-       o título segura no mesmo --p4 que apagou o resto: passado o .900
-       a variável fica em 1 e todo mundo já está no estado final, então
-       a fase de descanso sai de graça, sem variável nova.
+       DUAS PAUSAS, e as duas existem pelo mesmo motivo: uma imagem que
+       termina de se formar no instante em que a próxima começa nunca é
+       vista pronta. quem dá tempo de leitura é o intervalo DEPOIS da
+       entrada, não o tamanho da entrada.
 
-       ela existe porque o título antes chegava a 1 no ÚLTIMO pixel do
-       hero: dava para ler só enquanto ainda estava aparecendo, e a
-       seção seguinte já tomava a tela. tempo de leitura é a pausa
-       depois da entrada, não a entrada.
+       nenhuma das duas custou variável nova. no fim de cada faixa a
+       variável fica grudada em 1 e todo mundo já está no estado final,
+       então a pausa é só o espaço vazio entre uma faixa e a seguinte:
+       --pv fecha em .793 e --p4 só abre em .840. os 47 milésimos de
+       silêncio entre os dois são a tela verde parada.
 
        dentro de --pa tudo se escalona sozinho, pelo --t de cada
        elemento (ver os blocos "A CONVERSA" e "FRASES" no CSS):
@@ -1595,9 +1598,9 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
          .00 → .25  o chat sai
          .18 → .43  o check entra
          .34 → 1    a espiral preenche a tela                          */
-    const pt = ease(range(p,.045,.145));
-    const p4 = ease(range(p,.840,.900));
-    const pEncolhe = ease(range(p,0,.172));
+    const pt = ease(range(p,.043,.138));
+    const p4 = ease(range(p,.840,.897));
+    const pEncolhe = ease(range(p,0,.164));
 
     def('--p', pEncolhe.toFixed(4));
     /* escala e deslocamento do celular: substituem a antiga animação
@@ -1616,24 +1619,24 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     /* a conversa NÃO usa easing: cada rolada de roda tem que empurrar
        a construção na mesma proporção, senão os balões chegam em
        rajadas irregulares */
-    def('--pa', range(p,.099,.434).toFixed(4));
+    def('--pa', range(p,.094,.414).toFixed(4));
     /* SEM easing também: parallax tem que responder direto ao giro da
-       roda. as peças somem em .199 e --po fica travado em 1 depois
+       roda. as peças somem em .190 e --po fica travado em 1 depois
        disso — nenhuma volta a aparecer. */
-    def('--po', range(p,0,.199).toFixed(4));
+    def('--po', range(p,0,.190).toFixed(4));
     /* a luz migra do topo para o aro JUNTO com a troca de conteúdo:
-       o texto branco sai (.145) e a conversa entra (.099) — é nesse
+       o texto branco sai (.138) e a conversa entra (.094) — é nesse
        momento que o celular precisa assumir o foco, não depois. */
-    def('--pf', ease(range(p,.108,.271)).toFixed(4));
-    /* PULSO: sobe, SEGURA, e volta a zero. a pausa entre .533 e .632 é
-       o destaque do card — eram 16vh, agora são 61vh. o painel tem um
+    def('--pf', ease(range(p,.103,.258)).toFixed(4));
+    /* PULSO: sobe, SEGURA, e volta a zero. a pausa entre .508 e .603 é
+       o destaque do card — eram 16vh, agora são 62vh. o painel tem um
        scrim de tela cheia, então precisa sair antes do fecho verde,
        senão apagaria o check e a espiral. */
-    const pp = ease(range(p,.470,.533)) - ease(range(p,.632,.673));
+    const pp = ease(range(p,.448,.508)) - ease(range(p,.603,.642));
     def('--pp', pp.toFixed(4));
     /* fecho verde SEM easing: a varredura da espiral precisa acompanhar
        a roda de forma linear, senão acelera e freia no meio do giro */
-    def('--pv', range(p,.677,.831).toFixed(4));
+    def('--pv', range(p,.646,.793).toFixed(4));
     def('--p4', p4.toFixed(4));
 
     /* botões invisíveis não podem receber clique */
