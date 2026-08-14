@@ -59,11 +59,10 @@
   --p4:0;   /* tudo sai + título final entra       */
 
   /* seção dos módulos. estes padrões são OBRIGATÓRIOS: sem eles
-     var(--pc) é inválido, o que invalida --delta → --dist → --foco e
-     derruba o transform inteiro dos cards — todos empilham no mesmo
-     ponto até o JS escrever a variável pela primeira vez. */
-  --pc:0;    /* carrossel: qual card está em foco    */
-  --mt:0;    /* título da seção emerge              */
+     var(--pc) é inválido, o que invalida --chega → --sai e derruba o
+     transform inteiro dos cards — todos empilham no mesmo ponto até o
+     JS escrever a variável pela primeira vez. */
+  --pc:0;    /* linha do tempo dos três cards juntos */
   --tunel:0; /* avanço da grade do túnel, em px     */
 }
 
@@ -994,17 +993,7 @@ section{position:relative;z-index:2}
     repeating-linear-gradient(0deg, transparent 0 83px,rgba(255,255,255,.04) 88px,rgba(255,255,255,.2) 95px,rgba(255,255,255,.04) 102px,transparent 107px 190px);
 }
 
-/* --- TÍTULO que emerge --- */
-.modulos-titulo{
-  position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:2;
-  width:min(1000px,88vw);text-align:center;
-  font-size:clamp(30px,5.4vw,74px);font-weight:500;
-  line-height:1.12;letter-spacing:-.04em;
-  opacity:var(--mt,0);
-  pointer-events:none;
-}
-
-/* --- CARROSSEL --- */
+/* --- CARDS --- */
 .cartas{
   position:relative;z-index:3;
   width:100%;height:100%;
@@ -1012,11 +1001,25 @@ section{position:relative;z-index:2}
   transform-style:preserve-3d;
 }
 .carta{
-  /* distância deste card até o foco atual. max(a,-a) é o |a| — abs()
-     em CSS ainda é recente demais para produção. */
-  --delta:calc(var(--i) - var(--pc) * 2);
-  --dist:max(var(--delta), calc(var(--delta) * -1));
-  --foco:clamp(0, calc(1 - var(--dist)), 1);
+  /* OS TRÊS CHEGAM JUNTOS, DO FUNDO — não é mais carrossel.
+     antes, --pc era um índice: escolhia UM card por vez e os outros
+     deslizavam para o lado, um a um. agora --pc é uma linha do tempo
+     única para o trio inteiro:
+
+       --chega  0 → 1   os três sobem do fim do corredor até o foco
+       (segura)         .54 a .70 de --pc, em foco pleno
+       --sai    0 → 1   passam pela câmera e somem
+
+     a posição lateral virou fixa (--off, de --i): eles nascem lado a
+     lado e assim ficam. quem se move é o Z. */
+  --chega:clamp(0, calc(var(--pc,0) * 1.85), 1);
+  --sai:clamp(0, calc((var(--pc,0) - .70) * 3.34), 1);
+  /* -1 / 0 / +1 — o lugar de cada um no leque */
+  --off:calc(var(--i,1) - 1);
+  /* padrões OBRIGATÓRIOS: sem eles o var() é inválido e derruba o
+     transform inteiro dos três, empilhando tudo no mesmo ponto */
+  --tilt:0deg; --roll:0deg; --znudge:0px;
+  --leque:clamp(150px,24vw,350px);
 
   position:absolute;left:50%;top:50%;
   width:min(320px,74vw);aspect-ratio:.8;
@@ -1030,20 +1033,24 @@ section{position:relative;z-index:2}
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.16),
     0 30px 60px rgba(0,0,0,.65);
-  /* OS CARDS VÊM DE TRÁS, não do lado. o eixo dominante é o Z: cada
-     passo de distância empurra 300px para o fundo, enquanto o X só
-     desloca 145px. antes era o contrário (290px de X contra quase nada
-     de profundidade) e por isso eles deslizavam lateralmente.
-     preserve-3d faz o próprio translateZ ordenar quem fica na frente —
-     sem z-index, sem JS decidindo. */
+  /* O EIXO É O Z, e só ele. o translateX é fixo: define o lugar do card
+     no leque e não muda mais. como o translateX vem ANTES do translateZ
+     na cadeia, a perspectiva encolhe o deslocamento lateral junto com o
+     tamanho — a 1750px de fundo tudo vale 44%, então o trio nasce
+     pequeno e agrupado bem no ponto de fuga, que é o mesmo do túnel.
+     é isso que faz eles parecerem sair do fim do corredor.
+
+     no --sai o Z fica POSITIVO: os cards vêm na direção da câmera e
+     passam por ela, em vez de só apagarem parados. */
   transform:
     translate(-50%,-50%)
-    translateX(calc(var(--delta) * 145px))
-    translateY(calc(var(--dist) * 24px))
-    translateZ(calc(var(--dist) * -300px))
-    rotateY(calc(var(--delta) * -11deg));
-  filter:blur(calc((1 - var(--foco)) * 4.5px));
-  opacity:calc(.32 + .68 * var(--foco));
+    translateX(calc(var(--off) * var(--leque)))
+    translateY(calc((1 - var(--chega)) * 26px))
+    translateZ(calc(var(--znudge) - (1 - var(--chega)) * 1750px + var(--sai) * 620px))
+    rotateY(var(--tilt))
+    rotateZ(var(--roll));
+  filter:blur(calc((1 - var(--chega)) * 7px + var(--sai) * 6px));
+  opacity:calc(var(--chega) * (1 - var(--sai)));
 
   /* FLUTUAÇÃO PRÓPRIA — os cards respiram mesmo com o scroll parado.
      usa translate e rotate INDIVIDUAIS, não transform: o carrossel já
@@ -1056,13 +1063,19 @@ section{position:relative;z-index:2}
   animation-timing-function:ease-in-out;
   animation-iteration-count:infinite;
 }
-/* períodos primos entre si: o trio nunca volta a sincronizar */
-.carta:nth-child(1){--fdur:7s;  --fdel:0s}
-.carta:nth-child(2){--fdur:8.6s;--fdel:-2.4s}
-.carta:nth-child(3){--fdur:6.4s;--fdel:-4.1s}
+/* INCLINAÇÃO PRÓPRIA de cada um: os laterais viram para dentro (o de
+   fora do leque recua, como num carrossel 3D) e o do meio ganha um giro
+   pequeno, só para nenhum ficar chapado de frente. o --roll é o tombo
+   no plano da tela — é ele que tira o alinhamento de régua.
+   o --znudge põe o do meio um pouco à frente: com os três no mesmo Z,
+   quem decidiria a sobreposição seria a ordem do DOM.
+   períodos primos entre si: o trio nunca volta a sincronizar. */
+.carta:nth-child(1){--tilt:16deg; --roll:-2.5deg;--znudge:-70px;--fdur:7s;  --fdel:0s}
+.carta:nth-child(2){--tilt:-4deg; --roll:1.5deg; --znudge:0px;  --fdur:8.6s;--fdel:-2.4s}
+.carta:nth-child(3){--tilt:-16deg;--roll:2.5deg; --znudge:-70px;--fdur:6.4s;--fdel:-4.1s}
 @keyframes flutua{
   0%,100%{translate:0 0;      rotate:0deg}
-  50%    {translate:0 -14px;  rotate:.7deg}
+  50%    {translate:0 -18px;  rotate:1deg}
 }
 .carta-ico{
   width:5em;height:5em;border-radius:1.4em;margin-bottom:auto;
@@ -1080,16 +1093,11 @@ section{position:relative;z-index:2}
 }
 .carta p{font-size:.95em;line-height:1.5;color:rgba(255,255,255,.62)}
 
+/* na tela estreita o leque aperta e os cards se sobrepõem — vira baralho
+   aberto em vez de trio lado a lado. o transform não precisa ser
+   reescrito: ele já lê o --leque. */
 @media(max-width:900px){
-  .carta{
-    width:min(260px,78vw);
-    transform:
-      translate(-50%,-50%)
-      translateX(calc(var(--delta) * 95px))
-      translateY(calc(var(--dist) * 18px))
-      translateZ(calc(var(--dist) * -220px))
-      rotateY(calc(var(--delta) * -9deg));
-  }
+  .carta{width:min(230px,62vw);--leque:min(180px,20vw)}
 }
 /* a grade não tem mais animação de tempo — ela só se move quando a
    pessoa rola, então não há o que desligar aqui */
@@ -1359,11 +1367,6 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
       <div class="parede dir"><span class="grade"></span></div>
     </div>
 
-    <h2 class="modulos-titulo text-grad">
-      O jeito mais simples<br>
-      <span class="blue-grad">de tocar a assistência.</span>
-    </h2>
-
     <div class="cartas">
       <article class="carta" style="--i:0">
         <span class="carta-ico">
@@ -1601,9 +1604,10 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     atualizaModulos();
   }
 
-  /* ---------- seção dos módulos (túnel + carrossel) ----------
-     progresso próprio, independente do hero. --pc vai de 0 a 1 e cada
-     card calcula sozinho a distância até o foco (ver .carta no CSS). */
+  /* ---------- seção dos módulos (túnel + cards) ----------
+     progresso próprio, independente do hero. --pc vai de 0 a 1 e é uma
+     linha do tempo ÚNICA para os três cards juntos: eles sobem do fim
+     do corredor, seguram o foco e passam pela câmera (ver .carta). */
   const modulos = document.getElementById('modulos');
   const tunelEl = document.querySelector('.tunel');
   let tunelAnterior = null;
@@ -1618,9 +1622,10 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     const alvo = modulos.offsetHeight - window.innerHeight;
     const bruto = alvo > 0 ? (window.scrollY - modulos.offsetTop) / alvo : 0;
     const m = clamp(bruto, 0, 1);
-    /* margens de 12% nas pontas: o primeiro card já chega em foco e o
-       último não sai antes da seção acabar */
-    def('--pc', range(m,.12,.88).toFixed(4));
+    /* a seção é só dos cards agora, então eles usam quase tudo dela.
+       as margens nas pontas existem para o trio não estar já chegando
+       quando a seção prende no topo, nem sumir antes de ela soltar. */
+    def('--pc', range(m,.08,.94).toFixed(4));
     /* AVANÇO DO TÚNEL — amarrado ao scroll, não ao relógio.
        o resto (% 190) é o período exato da grade, então o valor volta
        a zero sem emenda e o avanço é infinito. o fator 1.6 é a marcha:
@@ -1634,8 +1639,6 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
       tunelAnterior = av;
       tunelEl && tunelEl.style.setProperty('--tunel', av);
     }
-    /* o título emerge no começo e some quando os cards assumem */
-    def('--mt', (ease(range(m,.02,.16)) * (1 - ease(range(m,.22,.34)))).toFixed(4));
   }
   function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(update); } }
 
