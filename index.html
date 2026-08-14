@@ -1029,14 +1029,17 @@ section{position:relative;z-index:2}
 
      AS DUAS PONTAS SÃO ESCALONADAS, com critérios diferentes:
 
-     na ENTRADA, pela ordem do trio (--i): o primeiro parte de zero,
-     para o corredor nunca aparecer vazio, e os outros vêm atrás de
-     .13 em .13. os três terminam de chegar em .56 e seguem juntos.
+     na ENTRADA, pela ordem do trio (--i), e o primeiro com DIANTEIRA
+     de .14. isso importa: enquanto a seção ainda está entrando na
+     tela, o progresso dela é zero — se a chegada começasse do zero, o
+     corredor apareceria por uma tela inteira antes do primeiro card
+     existir. com a dianteira, ele já está a meio caminho no instante
+     em que a seção prende. os outros vêm atrás de .13 em .13.
 
      na SAÍDA, pela distância ao CENTRO (--centro): o do meio sai
      primeiro e os dois laterais depois, juntos. o critério não é o
      índice — é a posição no leque, que é o que se enxerga. */
-  --chega:clamp(0, calc((var(--pc,0) - var(--i,1) * .13) * 3.33), 1);
+  --chega:clamp(0, calc((var(--pc,0) + .14 - var(--i,1) * .13) * 3.33), 1);
   --sai:clamp(0, calc((var(--pc,0) - .70 - var(--centro) * .08) * 4.5), 1);
   /* -1 / 0 / +1 — o lugar de cada um no leque */
   --off:calc(var(--i,1) - 1);
@@ -1649,9 +1652,13 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     const bruto = alvo > 0 ? (window.scrollY - modulos.offsetTop) / alvo : 0;
     const m = clamp(bruto, 0, 1);
     /* a seção é só dos cards agora, então eles usam quase tudo dela.
-       começa em .03 e não em .08: o primeiro card precisa já estar a
-       caminho quando o corredor prende no topo, senão a tela fica
-       preta e vazia por um trecho. */
+
+       ATENÇÃO: m fica GRUDADO EM ZERO durante toda a entrada da seção
+       — são 100vh de rolagem em que o corredor já se vê e o relógio
+       ainda não andou. não adianta antecipar o início aqui: por menor
+       que seja, no instante da entrada o valor é o mesmo zero. quem
+       resolve isso é a dianteira de .14 no --chega do .carta, que faz
+       o primeiro card já existir em pc = 0. */
     def('--pc', range(m,.03,.94).toFixed(4));
     /* AVANÇO DO TÚNEL — amarrado ao scroll, não ao relógio.
        o resto (% 190) é o período exato da grade, então o valor volta

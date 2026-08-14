@@ -61,6 +61,11 @@ Ficam registradas porque são fáceis de reintroduzir sem perceber:
 - **Percentuais em `inset` não são simétricos**: topo/base resolvem contra a
   altura e as laterais contra a largura. O bezel do celular corrige isso
   multiplicando pela razão de aspecto.
+- **O progresso de uma seção travada (`sticky`) fica em zero enquanto ela
+  entra na tela.** São 100vh de rolagem em que já se vê a seção e o relógio
+  dela ainda não começou. Antecipar o início do `range()` não adianta — no
+  instante da entrada o valor continua sendo zero. Quem tem que nascer
+  adiantado é o elemento: no `--chega` dos cards isso é a dianteira de `.14`.
 
 ## Ajustes rápidos
 
