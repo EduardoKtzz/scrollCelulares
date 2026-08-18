@@ -1138,9 +1138,6 @@ a{color:inherit;text-decoration:none}
    RESTO DA PÁGINA
    ============================================================ */
 section{position:relative;z-index:2}
-.strip{border-block:1px solid var(--line);padding:26px 0;margin-top:-1px}
-.strip .container{display:flex;align-items:center;justify-content:center;gap:clamp(24px,5vw,64px);flex-wrap:wrap}
-.strip span{color:#57575c;font-weight:700;font-size:clamp(14px,1.6vw,19px);letter-spacing:-.01em}
 
 /* ============================================================
    MÓDULOS — túnel em perspectiva + carrossel 3D de cards
@@ -1514,7 +1511,11 @@ section{position:relative;z-index:2}
    painel ao lado do aparelho durante a cena do status — repetir o mesmo
    mockup duas vezes na mesma página só gastaria a novidade dele.
    ============================================================ */
-.portal{padding:clamp(20px,4vw,50px) 0 clamp(70px,10vw,130px)}
+/* o topo era clamp(20px,4vw,50px) porque a faixa de marcas ficava
+   logo acima e já dava 119px de respiro. sem ela, o corredor — que é
+   uma cena de tela cheia — entregava direto no título daqui, a 20px.
+   agora o respiro é simétrico ao pé, que é o valor de seção do arquivo. */
+.portal{padding:clamp(70px,10vw,130px) 0}
 .portal-grid{
   display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
   gap:clamp(28px,5vw,70px);align-items:start;
@@ -1929,12 +1930,6 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 </section>
 
 <!-- =========================== CONTEÚDO =========================== -->
-<section class="strip">
-  <div class="container">
-    <span>Tela Nova</span><span>CellDoctor</span><span>Reparo Já</span><span>Assistec</span><span>MobileFix</span>
-  </div>
-</section>
-
 <!-- ============== PORTAL DO CLIENTE: o diferencial, colado no CTA ============== -->
 <section class="portal" id="cliente">
   <div class="container">
