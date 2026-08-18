@@ -645,6 +645,52 @@ a{color:inherit;text-decoration:none}
 .st-dados span{display:block;color:#93a2ba;font-size:.66em;margin-bottom:.3em}
 .st-dados b{font-size:.92em;font-weight:700;letter-spacing:-.02em}
 
+/* --- OS DOIS PONTOS, à ESQUERDA do aparelho ---
+   espelham o card de status: mesma âncora em --phone-w1, mesma largura e
+   a mesma entrada pelo --ps. o texto alinha à DIREITA e o marcador fica
+   do lado do celular, então os dois blocos apontam para dentro e a
+   moldura fica no meio da simetria, em vez de ter texto solto num lado.
+
+   é a primeira vez que a página afirma a tese. os cards e o portal, lá
+   embaixo, é que entram no detalhe — aqui é só o titulo da ideia. */
+.status-pontos{
+  position:absolute;z-index:22;
+  right:calc(50% + var(--phone-w1) / 2 + clamp(20px,3.5vw,64px));
+  top:50%;translate:0 -50%;
+  width:min(340px,27vw);
+  display:flex;flex-direction:column;gap:2.4em;
+  font-size:clamp(12px,1.05vw,16px);
+  text-align:right;
+  opacity:var(--ps,0);
+  pointer-events:none;
+}
+.sp-item{
+  /* escalonado pelo --pse, como as etapas do card: o segundo ponto chega
+     depois do primeiro, senão os dois nascem como um bloco só */
+  --l:clamp(0, calc((var(--pse,0) - var(--t)) * 3.4), 1);
+  display:grid;grid-template-columns:1fr auto;align-items:start;gap:.9em;
+  opacity:var(--l);
+  transform:translateX(calc((1 - var(--l)) * .7em));
+}
+.sp-item b{
+  display:block;font-size:1.34em;font-weight:600;
+  letter-spacing:-.028em;line-height:1.25;
+}
+.sp-item span{
+  display:block;margin-top:.5em;
+  color:#93a2ba;font-size:.94em;line-height:1.55;
+}
+/* o marcador acende junto: mesma família do selo "ao vivo" e das bolhas
+   das etapas, para o olho ler os três como o mesmo sistema */
+.sp-ponto{
+  width:.6em;height:.6em;border-radius:50%;margin-top:.62em;
+  background:var(--accent-1);
+  box-shadow:0 0 .85em rgba(91,227,255,.75);
+}
+/* na tela estreita não há vão ao lado do aparelho, e o card de status já
+   desceu para o pé da cena: dois blocos ali viraria pilha ilegível */
+@media(max-width:900px){.status-pontos{display:none}}
+
 /* --- A TELA DESLIGADA ---
    celular quebrado é celular apagado. cobre o display inteiro enquanto
    o conserto anda, e SAI no fim: é a tela voltando a acender, o último
@@ -1875,6 +1921,25 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     <!-- CENA DO STATUS: FORA da moldura, ao lado do aparelho. dentro da
          tela ele disputava os mesmos pixels com a trinca, e num celular
          já encolhido as quatro etapas ficavam ilegíveis. -->
+    <!-- OS DOIS PONTOS, à esquerda: a tese da cena, dita pela primeira
+         vez. espelham o card de status do outro lado da moldura. -->
+    <div class="status-pontos" aria-hidden="true">
+      <div class="sp-item" style="--t:.10">
+        <div>
+          <b>Você conserta. Ele acompanha.</b>
+          <span>O status muda no link do cliente no mesmo instante em que muda na bancada.</span>
+        </div>
+        <i class="sp-ponto"></i>
+      </div>
+      <div class="sp-item" style="--t:.30">
+        <div>
+          <b>Sem app, sem cadastro, sem ligação.</b>
+          <span>Um link por OS, que abre no navegador de qualquer aparelho emprestado.</span>
+        </div>
+        <i class="sp-ponto"></i>
+      </div>
+    </div>
+
     <div class="status" aria-hidden="true">
       <div class="st-topo">
         <div>
