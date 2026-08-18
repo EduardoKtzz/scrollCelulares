@@ -672,13 +672,20 @@ a{color:inherit;text-decoration:none}
   opacity:var(--l);
   transform:translateX(calc((1 - var(--l)) * .7em));
 }
+/* text-wrap:balance reparte as linhas em comprimentos parecidos em vez
+   de encher a primeira e deixar o resto cair. sem ele, "Sem app, sem
+   cadastro, sem ligação." largava um "ligação." sozinho embaixo — uma
+   palavra órfã num título de duas linhas chama mais atenção que o
+   próprio título. onde não houver suporte, volta a quebrar normalmente. */
 .sp-item b{
-  display:block;font-size:1.34em;font-weight:600;
+  display:block;font-size:1.3em;font-weight:600;
   letter-spacing:-.028em;line-height:1.25;
+  text-wrap:balance;
 }
 .sp-item span{
   display:block;margin-top:.5em;
-  color:#93a2ba;font-size:.94em;line-height:1.55;
+  color:#93a2ba;font-size:.8em;line-height:1.5;
+  text-wrap:balance;
 }
 /* o marcador acende junto: mesma família do selo "ao vivo" e das bolhas
    das etapas, para o olho ler os três como o mesmo sistema */
@@ -1710,6 +1717,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
       <i><span>c</span><span>e</span><span>l</span><span>l</span></i>
     </span>
   </div>
+  <!-- TODO: quando o sistema estiver no ar, este href vira a URL dele.
+       até lá aponta para o fecho da página, para não ser clique morto. -->
   <a href="#contato" class="btn btn-plain">Testar grátis</a>
 </nav>
 
@@ -1883,7 +1892,15 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             <p class="hero-kicker">Sistema completo para assistência técnica de celular.</p>
             <h1 class="text-grad">Da bancada à entrega, <br><span class="blue-grad">num sistema só.</span></h1>
             <div class="hero-actions">
-              <a href="#contato" class="btn btn-primary">Testar 14 dias grátis</a>
+              <!-- TODO: o APK ainda NÃO EXISTE. o href já aponta para o lugar
+                   certo: é só pôr o arquivo em downloads/fixcell.apk. até lá
+                   este botão dá 404.
+
+                   o rótulo diz "Android" de propósito. APK não instala em
+                   iPhone nem em desktop, e quem baixa sem saber disso fica
+                   com um arquivo inútil achando que o site quebrou — dizer a
+                   plataforma no botão evita o download errado. -->
+              <a href="downloads/fixcell.apk" class="btn btn-primary" download>Baixar o app · Android</a>
               <a href="#modulos" class="btn btn-ghost">Ver como funciona</a>
             </div>
           </div>
@@ -1933,8 +1950,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
       </div>
       <div class="sp-item" style="--t:.30">
         <div>
-          <b>Sem app, sem cadastro, sem ligação.</b>
-          <span>Um link por OS, que abre no navegador de qualquer aparelho emprestado.</span>
+          <b>Sem app. Sem ligação.</b>
+          <span>Um link por OS. Abre no navegador de qualquer aparelho emprestado, sem cadastro.</span>
         </div>
         <i class="sp-ponto"></i>
       </div>
