@@ -3,27 +3,28 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- durante o desenvolvimento: impede o navegador de servir versão antiga.
-     pode remover quando for publicar -->
-<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
 <title>FixCell — Sistema para assistência técnica de celular</title>
 <!-- COMPARTILHAMENTO. o primeiro cliente de um SaaS local chega por WhatsApp,
      não por busca: sem estas tags o link colado numa conversa aparece como
      retângulo cinza sem título, e é assim que a página é vista pela primeira vez.
-     TODO: as duas URLs absolutas abaixo precisam do domínio real quando publicar
-     — og:image só funciona com caminho absoluto. -->
+     TODO: as URLs absolutas abaixo apontam para o GitHub Pages. quando houver
+     domínio próprio, é og:url e og:image que mudam — relativo NÃO funciona
+     aqui: WhatsApp e Facebook exigem caminho absoluto. -->
 <meta name="description" content="O seu cliente acompanha o conserto por um link: etapa, orçamento, prazo e garantia. Sem app, sem cadastro, sem ligação para a loja.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
 <meta property="og:site_name" content="FixCell">
 <meta property="og:title" content="FixCell — do balcão à entrega, num sistema só">
 <meta property="og:description" content="O seu cliente acompanha o conserto por um link: etapa, orçamento, prazo e garantia. Sem app, sem cadastro, sem ligação para a loja.">
-<meta property="og:image" content="icons/icon-512.png">
+<meta property="og:url" content="https://eduardoktzz.github.io/scrollCelulares/">
+<meta property="og:image" content="https://eduardoktzz.github.io/scrollCelulares/icons/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="FixCell">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="FixCell — do balcão à entrega, num sistema só">
 <meta name="twitter:description" content="O seu cliente acompanha o conserto por um link: etapa, orçamento, prazo e garantia. Sem app, sem cadastro.">
-<meta name="twitter:image" content="icons/icon-512.png">
+<meta name="twitter:image" content="https://eduardoktzz.github.io/scrollCelulares/icons/og.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#080808">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -2182,10 +2183,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
          entrega o primeiro link pro seu cliente.</p>
 
       <div class="fecho-acoes">
-        <!-- TODO: trocar 55DDDNUMERO pelo seu WhatsApp com DDI+DDD, ex: 5551999998888.
-             enquanto estiver assim, o botão abre o wa.me num número inválido. -->
         <a class="btn btn-primary"
-           href="https://wa.me/55DDDNUMERO?text=Oi%20Eduardo%2C%20vi%20o%20FixCell%20e%20queria%20ver%20rodando%20na%20minha%20oficina"
+           href="https://wa.me/5527988784048?text=Oi%20Eduardo%2C%20vi%20o%20FixCell%20e%20queria%20ver%20rodando%20na%20minha%20oficina"
            target="_blank" rel="noopener">Falar comigo no WhatsApp</a>
         <a class="btn btn-ghost" href="#modulos">Rever o que ele faz</a>
       </div>

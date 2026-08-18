@@ -1,0 +1,38 @@
+# Publica a landing no GitHub Pages a cada push na main.
+#
+# O repositório é estático: não há build, o index.html da raiz já é o site.
+# Por isso o job só empacota a raiz e publica — nenhum passo de node.
+#
+# PARA LIGAR, uma vez: Settings -> Pages -> Source: "GitHub Actions".
+# Depois disso todo push na main republica sozinho.
+name: Publicar no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# se dois pushes chegarem juntos, o segundo espera em vez de brigar
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -86,19 +86,21 @@ function corGradiente(t) {
 /* escala: fração do lado que o glifo de 24x24 ocupa. o ícone "any" pode
    usar quase tudo; o "maskable" recua para 60%, porque o Android recorta
    em círculo e come as bordas. */
-function desenha(lado, escalaGlifo) {
+function desenha(w, h, escalaGlifo) {
+  const lado = Math.min(w, h);
   const AA = 4;                       /* supersampling, 16 amostras/pixel */
-  const rgba = Buffer.alloc(lado * lado * 4);
+  const rgba = Buffer.alloc(w * h * 4);
   const g = lado * escalaGlifo;       /* lado do glifo em px */
-  const off = (lado - g) / 2;
-  const paraSVG = v => (v - off) / g * 24;
+  const offX = (w - g) / 2, offY = (h - g) / 2;
+  const paraX = v => (v - offX) / g * 24;
+  const paraY = v => (v - offY) / g * 24;
 
-  for (let y = 0; y < lado; y++) {
-    for (let x = 0; x < lado; x++) {
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
       let ac = [0,0,0,0];
       for (let sy = 0; sy < AA; sy++) for (let sx = 0; sx < AA; sx++) {
-        const px = paraSVG(x + (sx + .5) / AA);
-        const py = paraSVG(y + (sy + .5) / AA);
+        const px = paraX(x + (sx + .5) / AA);
+        const py = paraY(y + (sy + .5) / AA);
 
         /* fundo: quase-preto com um halo azul difuso, como a página */
         const dCentro = Math.hypot(px - 12, py - 11) / 17;
@@ -116,25 +118,31 @@ function desenha(lado, escalaGlifo) {
         }
         ac[0] += r; ac[1] += gr; ac[2] += b; ac[3] += a;
       }
-      const n = AA * AA, i = (y * lado + x) * 4;
+      const n = AA * AA, i = (y * w + x) * 4;
       rgba[i]   = Math.round(ac[0] / n);
       rgba[i+1] = Math.round(ac[1] / n);
       rgba[i+2] = Math.round(ac[2] / n);
       rgba[i+3] = Math.round(ac[3] / n);
     }
   }
-  return png(lado, lado, rgba);
+  return png(w, h, rgba);
 }
 
 const dir = path.join(__dirname, '..', 'icons');
 fs.mkdirSync(dir, { recursive: true });
 const saidas = [
-  ['icon-192.png', 192, .78],
-  ['icon-512.png', 512, .78],
-  ['icon-maskable-512.png', 512, .56],  /* recuado: o Android recorta em círculo */
+  ['icon-192.png',           192,  192, .78],
+  ['icon-512.png',           512,  512, .78],
+  ['icon-maskable-512.png',  512,  512, .56],  /* recuado: o Android recorta em círculo */
+  /* CARTÃO DE COMPARTILHAMENTO — 1200x630 é a proporção que WhatsApp,
+     Facebook e LinkedIn recortam sem cortar nada. o ícone quadrado que
+     estava aqui antes aparecia minúsculo e com tarja nas laterais.
+     sem texto de propósito: o título vem do og:title, e desenhar
+     tipografia à mão num PNG envelhece mal quando a copy muda. */
+  ['og.png',                1200,  630, .42],
 ];
-for (const [nome, lado, esc] of saidas) {
-  const buf = desenha(lado, esc);
+for (const [nome, w, h, esc] of saidas) {
+  const buf = desenha(w, h, esc);
   fs.writeFileSync(path.join(dir, nome), buf);
-  console.log(nome.padEnd(24), lado + 'x' + lado, (buf.length / 1024).toFixed(1) + ' KB');
+  console.log(nome.padEnd(24), w + 'x' + h, (buf.length / 1024).toFixed(1) + ' KB');
 }
