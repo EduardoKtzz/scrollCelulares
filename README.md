@@ -63,11 +63,11 @@ Ficam registradas porque são fáceis de reintroduzir sem perceber:
   multiplicando pela razão de aspecto.
 - **Quem dá tempo de leitura é a pausa, não a entrada.** Uma imagem que termina
   de se formar no instante em que a próxima começa nunca é vista pronta. Vale
-  duas vezes no fecho do hero: a tela verde do check segura 31vh antes de o
+  duas vezes no fecho do hero: a tela verde do check segura 60vh antes de o
   título abrir, e o título segura 67vh antes de a seção acabar. Nenhuma das
   duas custou variável nova — no fim da faixa a variável fica grudada em 1, e
   a pausa é só o intervalo vazio até a faixa seguinte começar (`--pv` fecha em
-  .793, `--p4` só abre em .840).
+  .758, `--p4` só abre em .846).
 - **O progresso de uma seção travada (`sticky`) fica em zero enquanto ela
   entra na tela.** São 100vh de rolagem em que já se vê a seção e o relógio
   dela ainda não começou. Antecipar o início do `range()` não adianta — no
@@ -88,3 +88,40 @@ Ficam registradas porque são fáceis de reintroduzir sem perceber:
 
 Remover as meta tags `Cache-Control` / `Pragma` do `<head>` — elas existem só
 para o desenvolvimento local, onde `file://` guarda cache com força.
+
+## A trinca da tela
+
+A geometria do vidro quebrado é **gerada**, não desenhada à mão:
+[`scripts/trinca.js`](scripts/trinca.js). PRNG com semente fixa, então a saída
+é estável — rodar de novo dá exatamente o mesmo padrão.
+
+```bash
+node scripts/trinca.js
+```
+
+Escreve `bloco.html` com as cinco camadas prontas para colar dentro da
+`div.rachadura` no `index.html`. Para mudar o visual, mexa nos parâmetros do
+topo do gerador (`N`, `ANEIS`, `ESTILO`) — nunca em coordenada solta no HTML.
+
+O desenho manual anterior lia como teia de aranha, e o motivo era estrutural:
+
+- **anéis eram polígonos fechados e regulares.** Vidro quebra em cordas
+  independentes entre um radial e o vizinho, várias delas faltando.
+- **todo traço tinha a mesma espessura.** A fissura afina da cratera para a
+  ponta; aqui isso e a ordem da cura saem da mesma medida, o raio.
+- **todas as fissuras nasciam no mesmo pixel.** Metade delas agora começa só
+  depois do primeiro anel — sem isso, quatorze traços e seus halos se empilham
+  num vão de 2 unidades e o miolo vira uma bola branca.
+- **o halo era mais largo que o vão entre radiais vizinhos.** Halo largo demais
+  perto do impacto não vira brilho, vira borrão. A largura do halo tem que
+  caber no espaçamento local.
+
+Duas coisas que parecem detalhe e não são: o **halo** (a mesma geometria
+desenhada larga e quase transparente por baixo da fissura fina, que é como a
+luz espalha na espessura do vidro) e a **opacidade própria de cada caco** — as
+faces de vidro deslocado pegam luz em ângulos diferentes, e chapar todas no
+mesmo tom é o que faz parecer desenho vetorial.
+
+Para conferir o resultado sem depender de screenshot, dá para rasterizar o SVG
+num `<canvas>` e medir a tinta média por faixa de raio: ela tem que **cair**
+do centro para fora, sem degrau. Hoje: `87 → 90 → 58 → 33 → 15 → 5 → 1`.

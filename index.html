@@ -679,17 +679,33 @@ a{color:inherit;text-decoration:none}
   fill:none;stroke:#dce9ff;
   stroke-linecap:round;stroke-linejoin:round;
 }
+/* HALO: a MESMA geometria, desenhada larga e quase transparente por
+   baixo da fissura. vidro tem espessura, e a luz que entra pela quebra
+   espalha nos milímetros ao redor dela — traço único e chapado é o que
+   fazia a trinca ler como caneta em cima do display. o par largo+fino
+   custa um path a mais por camada e resolve sozinho a maior parte da
+   sensação de desenho. */
+.rachadura .halo{stroke:#9fc6f5;stroke-opacity:.13}
+/* CRATERA: onde bateu, o vidro não racha — PULVERIZA. um punhado de
+   cacos minúsculos preenchidos, mais claros que o resto, no lugar do
+   ponto onde as linhas se encontrariam. é a diferença entre "aqui
+   houve um impacto" e "aqui as retas convergem". */
+.rachadura .cratera{fill:rgba(226,240,255,.30);stroke:none}
 /* CACOS: os planos de vidro deslocado entre uma fissura e outra. é o
    que separa "riscos numa tela" de "vidro estilhaçado" — a luz pega
    diferente em cada face. preenchimento sem traço, bem discreto. */
-.rachadura .caco{fill:rgba(200,228,255,.075);stroke:none}
+.rachadura .caco{fill:#c8e4ff;stroke:none}   /* o alfa vem do fill-opacity de cada caco */
 /* clarão do impacto: um radial simples, sem filtro. some junto com a
    camada mais funda, que é a última a fechar. */
 .rach-bloom{
   /* 58% / 34.5% é o impacto (58,70) no viewBox de 100x203 */
   position:absolute;left:58%;top:34.5%;translate:-50% -50%;
-  width:56%;aspect-ratio:1;border-radius:50%;
-  background:radial-gradient(closest-side,rgba(190,225,255,.30),transparent 70%);
+  /* ERA 56% e alfa .30: um disco maior que a própria zona de fratura,
+     que virava mancha branca por cima da trinca em vez de brilho do
+     impacto. o clarão tem que ser MENOR que a cratera que ele explica —
+     se ele borra as fissuras do miolo, ele está grande demais. */
+  width:26%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(190,225,255,.22),transparent 72%);
   --t:.58; --k:8.3;
   --l:clamp(0, calc((var(--pse,0) - var(--t)) * var(--k)), 1);
   opacity:calc(clamp(0, calc((var(--pse,0) - .04) * 8.3), 1) * (1 - var(--l)));
@@ -1668,59 +1684,65 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             </div>
           </div>
 
-          <!-- A TRINCA: impacto em (63,74), fora do centro. cada fissura
-               tem três segmentos, e as camadas saram de fora para dentro.
-               vários subcaminhos num `d` só — dez fissuras em um path, em
-               vez de dez elementos. -->
+          <!-- A TRINCA: impacto em (58,70), fora do centro. as camadas
+               saram de fora para dentro, e vários subcaminhos cabem num
+               `d` só — uma camada inteira é um path, não trinta.
+
+               ESTA GEOMETRIA É GERADA, NÃO DESENHADA À MÃO. o desenho
+               manual anterior lia como teia de aranha por dois motivos
+               estruturais: os anéis eram polígonos FECHADOS e regulares,
+               e todo traço tinha a mesma espessura. vidro real quebra em
+               cordas independentes entre um radial e o vizinho — várias
+               faltando —, e a fissura AFINA da cratera para as pontas.
+
+               o gerador (scripts/trinca.js) usa PRNG com semente fixa,
+               então a saída é estável: rodar de novo dá exatamente este
+               resultado. mexer no visual é mexer nos parâmetros do topo
+               dele e colar a saída aqui — não editar coordenada a mão. -->
           <div class="rachadura" aria-hidden="true">
             <span class="rach-bloom"></span>
-            <!-- CAMADA 5: as pontas que correm até a borda. primeiras a
-                 fechar, e as mais finas — lá o vidro só está riscado. -->
+            <!-- CAMADA 5: as pontas que correm até a borda — as mais finas, primeiras a fechar -->
             <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
-                 style="--t:.34;--k:10" stroke-width=".34" stroke-opacity=".42">
-              <path d="M33 30 26 12 M54 24 55 6 M85 36 93 22 M95 58 100 55
-                       M85 79 100 80 M90 114 97 130 M66 124 64 148 M42 122 38 146
-                       M20 104 8 120 M15 62 2 60 M22 44 14 36 M70 20 73 4
-                       M53 116 50 144 M88 69 100 66"/>
-              <path d="M14 56 34 26 62 20 90 38 94 74 78 104 46 108Z"/>
+                 style="--t:.34;--k:10" stroke-width="0.26" stroke-opacity="0.38">
+              <path class="halo" stroke-width="0.8" d="M101.55 57.85 107.97 55.48 M83.84 111.03 87.5 126.18 M53.81 114.95 47.97 126.58 M33.02 41.36 24.34 35.59 M98.5 48.2 110.39 47.2 M96.52 95.57Q91.7 104.87 83.84 111.03 M37.78 34.87Q28.34 31.72 24.34 35.59 M110.39 47.2Q113.12 49.9 107.97 55.48"/>
+              <path d="M101.55 57.85 107.97 55.48 M83.84 111.03 87.5 126.18 M53.81 114.95 47.97 126.58 M33.02 41.36 24.34 35.59 M98.5 48.2 110.39 47.2 M96.52 95.57Q91.7 104.87 83.84 111.03 M37.78 34.87Q28.34 31.72 24.34 35.59 M110.39 47.2Q113.12 49.9 107.97 55.48"/>
             </svg>
-            <!-- CAMADA 4: o corpo longo das fissuras, com as ramificações -->
+            <!-- CAMADA 4: o corpo longo das fissuras -->
             <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
-                 style="--t:.42;--k:10" stroke-width=".45" stroke-opacity=".56">
-              <path d="M42 46 33 30 M57 42 54 24 M74 49 85 36 M83 63 95 58
-                       M71 75 85 79 M79 96 90 114 M64 103 66 124 M47 101 42 122
-                       M34 90 20 104 M31 66 15 62 M36 54 22 44 M66 38 70 20
-                       M74 71 88 69 M53 84 47 101
-                       M79 96 86 94 M47 101 40 104 M34 90 30 84 M66 124 72 128"/>
+                 style="--t:.41;--k:10" stroke-width="0.36" stroke-opacity="0.52">
+              <path class="halo" stroke-width="0.95" d="M84.24 64.15 92.12 58.55 M92.12 58.55 101.55 57.85 M86.3 84.05 96.52 95.57 M75.27 95.13 83.84 111.03 M55.55 100.9 53.81 114.95 M32.06 78.04 28.82 82.84 M28.82 82.84 24.86 86.59 M33.57 63.74 25.8 58.77 M25.8 58.77 16.96 53.64 M43.91 46.63 39.84 39.39 M39.84 39.39 37.78 34.87 M45.81 53.15 33.02 41.36 M73.18 46.35 79.12 43.04 M74.72 48.98 78.66 44.53 M76.48 57.36 88.64 53.03 M88.64 53.03 98.5 48.2 M86.3 84.05Q83.65 92.06 75.27 95.13 M79.12 43.04Q81.35 40.7 78.66 44.53 M78.66 44.53Q85.48 47.27 88.64 53.03 M88.64 53.03Q92.74 54.76 92.12 58.55 M101.55 57.85Q99.87 76.85 96.52 95.57 M16.96 53.64Q25.45 42.64 37.78 34.87 M43.91 46.63 38.49 44.79 34.07 44.4"/>
+              <path d="M84.24 64.15 92.12 58.55 M92.12 58.55 101.55 57.85 M86.3 84.05 96.52 95.57 M75.27 95.13 83.84 111.03 M55.55 100.9 53.81 114.95 M32.06 78.04 28.82 82.84 M28.82 82.84 24.86 86.59 M33.57 63.74 25.8 58.77 M25.8 58.77 16.96 53.64 M43.91 46.63 39.84 39.39 M39.84 39.39 37.78 34.87 M45.81 53.15 33.02 41.36 M73.18 46.35 79.12 43.04 M74.72 48.98 78.66 44.53 M76.48 57.36 88.64 53.03 M88.64 53.03 98.5 48.2 M86.3 84.05Q83.65 92.06 75.27 95.13 M79.12 43.04Q81.35 40.7 78.66 44.53 M78.66 44.53Q85.48 47.27 88.64 53.03 M88.64 53.03Q92.74 54.76 92.12 58.55 M101.55 57.85Q99.87 76.85 96.52 95.57 M16.96 53.64Q25.45 42.64 37.78 34.87 M43.91 46.63 38.49 44.79 34.07 44.4"/>
             </svg>
-            <!-- CAMADA 3: o segundo anel e o trecho médio -->
+            <!-- CAMADA 3: o anel médio, onde o vidro começa a soltar -->
             <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
-                 style="--t:.50;--k:10" stroke-width=".58" stroke-opacity=".7">
-              <path d="M49 60 42 46 M56 57 57 42 M66 60 74 49 M70 66 83 63
-                       M58 70 71 75 M69 82 79 96 M62 85 64 103 M53 84 47 101
-                       M47 79 34 90 M45 68 31 66 M48 63 36 54 M63 54 66 38
-                       M57 92 53 116 M42 46 34 44 M74 49 78 42"/>
-              <path d="M36 58 50 40 68 42 82 58 78 80 62 92 44 86Z"/>
+                 style="--t:.47;--k:10" stroke-width="0.48" stroke-opacity="0.66">
+              <path class="caco" fill-opacity="0.046" d="M62.41 79.74 66.3 85.62 57.21 89.85 58.49 82.86Z"/>
+              <path class="caco" fill-opacity="0.063" d="M40.55 66.07 33.57 63.74 43.91 46.63 48.29 55.22Z"/>
+              <path class="caco" fill-opacity="0.047" d="M48.29 55.22 43.91 46.63 45.81 53.15 50.08 55.93Z"/>
+              <path class="caco" fill-opacity="0.054" d="M67.99 56.45 74.72 48.98 76.48 57.36 72.7 62.1Z"/>
+              <path class="halo" stroke-width="1.1" d="M74.03 67.82 84.24 64.15 M71.9 77.68 77.13 80.6 M77.13 80.6 86.3 84.05 M69.81 81.21 71.57 85.88 M71.57 85.88 75.27 95.13 M66.3 85.62 66.47 91.03 M57.21 89.85 54.46 92.78 M54.46 92.78 55.55 100.9 M48.15 82.51 44.01 85.95 M43.26 75.66 32.06 78.04 M41.14 71.67 30.74 69.65 M40.55 66.07 33.57 63.74 M48.29 55.22 43.91 46.63 M50.08 55.93 45.81 53.15 M65.43 54.79 73.18 46.35 M67.99 56.45 74.72 48.98 M72.7 62.1 76.48 57.36 M66.3 85.62Q61.88 88.31 57.21 89.85 M84.24 64.15Q83.24 72.64 77.13 80.6 M77.13 80.6Q75.23 83.95 71.57 85.88 M71.57 85.88Q69.35 89.01 66.47 91.03 M44.01 85.95Q36.41 82.97 32.06 78.04 M32.06 78.04Q29.6 74.11 30.74 69.65 M30.74 69.65Q30.78 66.52 33.57 63.74 M33.57 63.74Q38.06 54.66 43.91 46.63 M43.91 46.63Q44.58 49.46 45.81 53.15 M45.81 53.15Q59.66 47.49 73.18 46.35 M73.18 46.35Q75.81 45.06 74.72 48.98 M74.72 48.98Q77.02 51.81 76.48 57.36 M33.02 41.36Q55.93 40.11 79.12 43.04 M68.89 67.72 71.83 64.34 74.58 61.3 M40.55 66.07 38.26 62.63 35.75 60.3"/>
+              <path d="M74.03 67.82 84.24 64.15 M71.9 77.68 77.13 80.6 M77.13 80.6 86.3 84.05 M69.81 81.21 71.57 85.88 M71.57 85.88 75.27 95.13 M66.3 85.62 66.47 91.03 M57.21 89.85 54.46 92.78 M54.46 92.78 55.55 100.9 M48.15 82.51 44.01 85.95 M43.26 75.66 32.06 78.04 M41.14 71.67 30.74 69.65 M40.55 66.07 33.57 63.74 M48.29 55.22 43.91 46.63 M50.08 55.93 45.81 53.15 M65.43 54.79 73.18 46.35 M67.99 56.45 74.72 48.98 M72.7 62.1 76.48 57.36 M66.3 85.62Q61.88 88.31 57.21 89.85 M84.24 64.15Q83.24 72.64 77.13 80.6 M77.13 80.6Q75.23 83.95 71.57 85.88 M71.57 85.88Q69.35 89.01 66.47 91.03 M44.01 85.95Q36.41 82.97 32.06 78.04 M32.06 78.04Q29.6 74.11 30.74 69.65 M30.74 69.65Q30.78 66.52 33.57 63.74 M33.57 63.74Q38.06 54.66 43.91 46.63 M43.91 46.63Q44.58 49.46 45.81 53.15 M45.81 53.15Q59.66 47.49 73.18 46.35 M73.18 46.35Q75.81 45.06 74.72 48.98 M74.72 48.98Q77.02 51.81 76.48 57.36 M33.02 41.36Q55.93 40.11 79.12 43.04 M68.89 67.72 71.83 64.34 74.58 61.3 M40.55 66.07 38.26 62.63 35.75 60.3"/>
             </svg>
-            <!-- CAMADA 2: o que nasce do impacto, mais os CACOS -->
+            <!-- CAMADA 2: o que nasce do impacto, com os planos deslocados -->
             <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
-                 style="--t:.58;--k:10" stroke-width=".75" stroke-opacity=".85">
-              <path class="caco" d="M55 57 65 59 63 54Z M70 68 82 58 78 80Z
-                                    M48 76 56 82 44 86Z M56 57 48 64 49 60Z
-                                    M66 79 70 68 78 80 62 92Z"/>
-              <path d="M58 70 49 60 M58 70 56 57 M58 70 66 60 M58 70 70 66
-                       M58 70 69 82 M58 70 62 85 M58 70 53 84 M58 70 47 79
-                       M58 70 45 68 M58 70 48 63 M58 70 63 54 M58 70 74 71
-                       M58 70 57 92"/>
-              <path d="M48 64 55 57 65 59 70 68 66 79 56 82Z"/>
+                 style="--t:.53;--k:10" stroke-width="0.62" stroke-opacity="0.82">
+              <path class="caco" fill-opacity="0.106" d="M58.15 77.04 58.49 82.86 52.19 79.6 54.21 75.95Z"/>
+              <path class="caco" fill-opacity="0.101" d="M50.65 73.07 47.14 75.86 45.44 71.58 51.01 70.05Z"/>
+              <path class="caco" fill-opacity="0.117" d="M51.01 70.05 45.44 71.58 45 66.93 50.67 67.78Z"/>
+              <path class="caco" fill-opacity="0.115" d="M55.36 63.21 51.5 58 63.06 57.62 60.98 63.55Z"/>
+              <path class="caco" fill-opacity="0.053" d="M64.76 66.43 68.04 63.93 68.89 67.72 66.14 68.84Z"/>
+              <path class="caco" fill-opacity="0.059" d="M58.49 82.86 57.21 89.85 48.15 82.51 52.19 79.6Z"/>
+              <path class="caco" fill-opacity="0.111" d="M45.44 71.58 41.14 71.67 40.55 66.07 45 66.93Z"/>
+              <path class="caco" fill-opacity="0.099" d="M65.12 58.08 67.99 56.45 72.7 62.1 68.04 63.93Z"/>
+              <path class="halo" stroke-width="1.25" d="M68.89 67.72 74.03 67.82 M64.72 73.85 70.27 75.44 M70.27 75.44 71.9 77.68 M64.69 77.62 69.81 81.21 M62.41 79.74 66.3 85.62 M58.49 82.86 57.21 89.85 M52.19 79.6 48.15 82.51 M50.65 73.07 47.14 75.86 M47.14 75.86 43.26 75.66 M45.44 71.58 41.14 71.67 M50.67 67.78 45 66.93 M45 66.93 40.55 66.07 M52.94 60.8 48.29 55.22 M55.36 63.21 51.5 58 M51.5 58 50.08 55.93 M60.98 63.55 63.06 57.62 M63.06 57.62 65.43 54.79 M61.81 63.19 65.12 58.08 M65.12 58.08 67.99 56.45 M68.04 63.93 72.7 62.1 M68.89 67.72Q70.7 71.73 70.27 75.44 M70.27 75.44Q68.49 77.23 64.69 77.62 M64.69 77.62Q64.13 79.58 62.41 79.74 M58.49 82.86Q55.17 81.95 52.19 79.6 M52.19 79.6Q48.72 78.61 47.14 75.86 M47.14 75.86Q45.48 73.98 45.44 71.58 M45.44 71.58Q44.7 69.23 45 66.93 M45 66.93Q47.95 63.17 52.94 60.8 M51.5 58Q57.22 56.84 63.06 57.62 M63.06 57.62Q64.78 56.47 65.12 58.08 M65.12 58.08Q67.12 60.44 68.04 63.93 M68.04 63.93Q69.75 65.31 68.89 67.72 M71.9 77.68Q71.75 80.11 69.81 81.21 M69.81 81.21Q69.25 85.01 66.3 85.62 M57.21 89.85Q52.22 87.57 48.15 82.51 M48.15 82.51Q44.13 80.25 43.26 75.66 M41.14 71.67Q39.47 68.78 40.55 66.07 M48.29 55.22Q48.18 53.93 50.08 55.93 M50.08 55.93Q57.73 53.65 65.43 54.79 M65.43 54.79Q67.83 53.77 67.99 56.45 M67.99 56.45Q71.37 58.38 72.7 62.1 M72.7 62.1Q74.68 64.53 74.03 67.82 M62.41 79.74 61.48 82.68 60.4 85.08 M51.01 70.05 46.69 66.4 43.43 64 M60.98 63.55 64.13 61.89 66.67 60.37"/>
+              <path d="M68.89 67.72 74.03 67.82 M64.72 73.85 70.27 75.44 M70.27 75.44 71.9 77.68 M64.69 77.62 69.81 81.21 M62.41 79.74 66.3 85.62 M58.49 82.86 57.21 89.85 M52.19 79.6 48.15 82.51 M50.65 73.07 47.14 75.86 M47.14 75.86 43.26 75.66 M45.44 71.58 41.14 71.67 M50.67 67.78 45 66.93 M45 66.93 40.55 66.07 M52.94 60.8 48.29 55.22 M55.36 63.21 51.5 58 M51.5 58 50.08 55.93 M60.98 63.55 63.06 57.62 M63.06 57.62 65.43 54.79 M61.81 63.19 65.12 58.08 M65.12 58.08 67.99 56.45 M68.04 63.93 72.7 62.1 M68.89 67.72Q70.7 71.73 70.27 75.44 M70.27 75.44Q68.49 77.23 64.69 77.62 M64.69 77.62Q64.13 79.58 62.41 79.74 M58.49 82.86Q55.17 81.95 52.19 79.6 M52.19 79.6Q48.72 78.61 47.14 75.86 M47.14 75.86Q45.48 73.98 45.44 71.58 M45.44 71.58Q44.7 69.23 45 66.93 M45 66.93Q47.95 63.17 52.94 60.8 M51.5 58Q57.22 56.84 63.06 57.62 M63.06 57.62Q64.78 56.47 65.12 58.08 M65.12 58.08Q67.12 60.44 68.04 63.93 M68.04 63.93Q69.75 65.31 68.89 67.72 M71.9 77.68Q71.75 80.11 69.81 81.21 M69.81 81.21Q69.25 85.01 66.3 85.62 M57.21 89.85Q52.22 87.57 48.15 82.51 M48.15 82.51Q44.13 80.25 43.26 75.66 M41.14 71.67Q39.47 68.78 40.55 66.07 M48.29 55.22Q48.18 53.93 50.08 55.93 M50.08 55.93Q57.73 53.65 65.43 54.79 M65.43 54.79Q67.83 53.77 67.99 56.45 M67.99 56.45Q71.37 58.38 72.7 62.1 M72.7 62.1Q74.68 64.53 74.03 67.82 M62.41 79.74 61.48 82.68 60.4 85.08 M51.01 70.05 46.69 66.4 43.43 64 M60.98 63.55 64.13 61.89 66.67 60.37"/>
             </svg>
-            <!-- CAMADA 1: a cratera do impacto. mais grossa, mais clara e a
-                 ÚLTIMA a fechar — é o ponto onde o vidro cedeu. -->
+            <!-- CAMADA 1: a cratera: vidro pulverizado, o último a fechar -->
             <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
-                 style="--t:.58;--k:8.3" stroke-width=".95" stroke-opacity="1">
-              <path class="caco" d="M54 66 62 65 64 72 60 76 55 74Z"/>
-              <path d="M54 66 62 65 64 72 60 76 55 74Z
-                       M56 68 61 71 M58 64 59 76 M53 70 64 69 M60 66 57 75"/>
+                 style="--t:.58;--k:10" stroke-width="0.85" stroke-opacity="1">
+              <path class="cratera" d="M58 70 59.96 70.01 60.7 71.97Z M58 70 60.03 72.16 58.58 72.31Z M58 70 58.7 72.6 57.13 72.5Z M58 70 57.52 71.42 55.91 71.29Z M58 70 56.67 70.25 56.06 68.77Z M58 70 56.66 69.2 56.99 66.79Z M58 70 56.2 67.52 58.09 66.95Z M58 70 58.18 68.76 58.84 68.97Z M58 70 59.85 68.92 59.96 70.33Z"/>
+              <path class="halo" stroke-width="1.35" d="M58 70 66.14 68.84 M66.14 68.84 68.89 67.72 M58 70 64.72 73.85 M58 70 63.83 75.41 M63.83 75.41 64.69 77.62 M60.4 77.32 62.41 79.74 M58 70 58.15 77.04 M58.15 77.04 58.49 82.86 M54.21 75.95 52.19 79.6 M58 70 50.65 73.07 M58 70 51.01 70.05 M51.01 70.05 45.44 71.58 M58 70 53.15 62.8 M53.15 62.8 52.94 60.8 M58 70 60.98 63.55 M58 70 64.76 66.43 M64.76 66.43 68.04 63.93 M66.14 68.84Q66 71.45 64.72 73.85 M64.72 73.85Q65.06 75.21 63.83 75.41 M63.83 75.41Q62.29 76.62 60.4 77.32 M60.4 77.32Q59.35 77.56 58.15 77.04 M58.15 77.04Q56 77.12 54.21 75.95 M54.21 75.95Q51.73 75.08 50.65 73.07 M50.65 73.07Q50.66 71.6 51.01 70.05 M51.01 70.05Q50.51 68.87 50.67 67.78 M50.67 67.78Q51.3 64.82 53.15 62.8 M53.15 62.8Q53.97 62.47 55.36 63.21 M55.36 63.21Q58.19 62.67 60.98 63.55 M60.98 63.55Q61.5 63.16 61.81 63.19 M61.81 63.19Q63.87 64.24 64.76 66.43"/>
+              <path d="M58 70 66.14 68.84 M66.14 68.84 68.89 67.72 M58 70 64.72 73.85 M58 70 63.83 75.41 M63.83 75.41 64.69 77.62 M60.4 77.32 62.41 79.74 M58 70 58.15 77.04 M58.15 77.04 58.49 82.86 M54.21 75.95 52.19 79.6 M58 70 50.65 73.07 M58 70 51.01 70.05 M51.01 70.05 45.44 71.58 M58 70 53.15 62.8 M53.15 62.8 52.94 60.8 M58 70 60.98 63.55 M58 70 64.76 66.43 M64.76 66.43 68.04 63.93 M66.14 68.84Q66 71.45 64.72 73.85 M64.72 73.85Q65.06 75.21 63.83 75.41 M63.83 75.41Q62.29 76.62 60.4 77.32 M60.4 77.32Q59.35 77.56 58.15 77.04 M58.15 77.04Q56 77.12 54.21 75.95 M54.21 75.95Q51.73 75.08 50.65 73.07 M50.65 73.07Q50.66 71.6 51.01 70.05 M51.01 70.05Q50.51 68.87 50.67 67.78 M50.67 67.78Q51.3 64.82 53.15 62.8 M53.15 62.8Q53.97 62.47 55.36 63.21 M55.36 63.21Q58.19 62.67 60.98 63.55 M60.98 63.55Q61.5 63.16 61.81 63.19 M61.81 63.19Q63.87 64.24 64.76 66.43"/>
             </svg>
           </div>
 
