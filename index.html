@@ -8,6 +8,22 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <title>FixCell — Sistema para assistência técnica de celular</title>
+<!-- COMPARTILHAMENTO. o primeiro cliente de um SaaS local chega por WhatsApp,
+     não por busca: sem estas tags o link colado numa conversa aparece como
+     retângulo cinza sem título, e é assim que a página é vista pela primeira vez.
+     TODO: as duas URLs absolutas abaixo precisam do domínio real quando publicar
+     — og:image só funciona com caminho absoluto. -->
+<meta name="description" content="O seu cliente acompanha o conserto por um link: etapa, orçamento, prazo e garantia. Sem app, sem cadastro, sem ligação para a loja.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="FixCell">
+<meta property="og:title" content="FixCell — do balcão à entrega, num sistema só">
+<meta property="og:description" content="O seu cliente acompanha o conserto por um link: etapa, orçamento, prazo e garantia. Sem app, sem cadastro, sem ligação para a loja.">
+<meta property="og:image" content="icons/icon-512.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FixCell — do balcão à entrega, num sistema só">
+<meta name="twitter:description" content="O seu cliente acompanha o conserto por um link: etapa, orçamento, prazo e garantia. Sem app, sem cadastro.">
+<meta name="twitter:image" content="icons/icon-512.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#080808">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -564,43 +580,6 @@ a{color:inherit;text-decoration:none}
    o pontinho virava display:inline, onde width e height são ignorados:
    ele existia no DOM e media zero. */
 .st-topo div span{display:block;color:#93a2ba;font-size:.78em;margin-top:.28em}
-/* selo "ao vivo": o ponto pulsa. é o que diz que o dado é de agora, e
-   custa uma opacidade — nada de sombra com raio interpolado. */
-/* o selo "ao vivo" é a promessa da seção inteira: o cliente vê o
-   conserto acontecer. ele precisa PUXAR o olho para dentro do card.
-   o halo é verde e estático — quem se move é o anel, e movimento
-   custa menos que luz variável. */
-.st-vivo{
-  display:inline-flex;align-items:center;gap:.4em;flex:none;
-  font-size:.7em;font-weight:700;color:#b6f0d3;
-  background:rgba(34,197,94,.18);
-  box-shadow:
-    inset 0 0 0 1px rgba(34,197,94,.42),
-    0 0 20px rgba(34,197,94,.30);      /* halo do selo, pintado uma vez */
-  border-radius:999px;padding:.42em .72em;
-}
-.st-vivo i{
-  position:relative;                    /* âncora do anel */
-  width:.5em;height:.5em;border-radius:50%;background:#3ddc7f;flex:none;
-  /* brilho ESTÁTICO no ponto: desfoque animado repintaria a cada quadro,
-     que é a regra mais cara do arquivo. aqui só a opacidade varia. */
-  box-shadow:0 0 5px rgba(52,220,127,.95), 0 0 12px rgba(34,197,94,.55);
-  animation:stPulsa 2s ease-in-out infinite;
-}
-/* ANEL QUE SE ABRE — o sinal clássico de transmissão ao vivo. só mexe
-   em scale e opacity, as duas propriedades que o compositor resolve
-   sozinho: nenhum pixel é repintado durante a animação. */
-.st-vivo i::after{
-  content:"";position:absolute;inset:0;border-radius:50%;
-  box-shadow:0 0 0 1.5px rgba(52,220,127,.75);
-  animation:stAnel 2s ease-out infinite;
-}
-@keyframes stPulsa{0%,100%{opacity:1}55%{opacity:.45}}
-@keyframes stAnel{
-  0%   {scale:1;   opacity:.75}
-  70%  {scale:2.9; opacity:0}
-  100% {scale:2.9; opacity:0}
-}
 
 /* --- a linha do tempo do conserto --- */
 .st-linha{display:flex;flex-direction:column}
@@ -941,12 +920,6 @@ a{color:inherit;text-decoration:none}
 .painel-cab .estrelas{color:#ffd257;letter-spacing:.09em}
 .painel-cab .quando{color:rgba(255,255,255,.72)}
 /* selo de verificado */
-.painel-selo{
-  margin-left:auto;flex:none;
-  display:inline-flex;align-items:center;gap:.32em;
-  font-size:.72em;font-weight:700;color:#b6f7d1;
-  background:rgba(255,255,255,.15);border-radius:999px;padding:.42em .75em;
-}
 /* o depoimento: sem caixa, com aspa decorativa — é o que dá cara de
    review em vez de recibo */
 .painel-msg{
@@ -1690,6 +1663,43 @@ section{position:relative;z-index:2}
   .rol-ponto::after{display:none}
 }
 
+
+/* ============================================================
+   FECHO — o único lugar da página onde se pode agir
+
+   a seção anterior foi removida por prometer teste grátis, "sem
+   cartão" e migração de dados: nada disso existe no sistema. esta
+   promete só o que o Eduardo faz com as próprias mãos hoje —
+   instalar junto, por chamada ou na loja.
+
+   por isso não há selo de "14 dias" nem preço aqui: preço é decisão
+   de negócio, e enquanto não houver cobrança no sistema, anunciar
+   valor é criar a mesma dívida que acabou de ser paga. */
+.fecho{padding:0 0 clamp(70px,11vw,140px)}
+.fecho-caixa{
+  position:relative;
+  border:1px solid rgba(140,190,255,.20);border-radius:32px;
+  padding:clamp(40px,7vw,76px) 28px;text-align:center;
+  background:
+    radial-gradient(120% 130% at 50% 0%,rgba(46,155,255,.22),transparent 62%),
+    linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.012));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.16),
+    0 0 70px rgba(46,120,225,.16),
+    0 30px 60px rgba(0,0,0,.5);
+}
+.fecho-caixa h2{
+  font-size:clamp(28px,4.4vw,52px);font-weight:600;
+  letter-spacing:-.04em;line-height:1.08;text-wrap:balance;
+}
+.fecho-caixa p{
+  color:var(--muted);margin:18px auto 30px;max-width:520px;
+  font-size:16.5px;line-height:1.6;text-wrap:pretty;
+}
+.fecho-acoes{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.fecho-acoes .btn{height:52px;padding:0 28px;font-size:15.5px}
+.fecho-micro{margin:20px 0 0;color:#7c8598;font-size:13.5px}
+
 footer{border-top:1px solid var(--line);padding:28px 0;color:#5b5b60;font-size:14px}
 footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
 
@@ -1714,10 +1724,6 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   .carta,.carta-ico{animation:none}
   .carta::before{animation:none;opacity:.8}
   .carta::after{animation:none;display:none}
-  /* a cena do status é dirigida por SCROLL, não por animação — as etapas
-     seguem construindo normalmente. o único movimento por tempo ali é o
-     ponto do selo "ao vivo", e é ele que para. */
-  .st-vivo i,.st-vivo i::after{animation:none}
   /* a deriva ambiente para; o avanço pelo scroll fica, porque é gesto
      da própria pessoa */
   .grade{animation:none}
@@ -1919,7 +1925,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
           <!-- texto do hero: mora DENTRO da tela, junto com as cenas.
                é o que garante que ele encolha na mesma proporção da moldura -->
           <div class="hero-text">
-            <p class="hero-kicker">Sistema completo para assistência técnica de celular.</p>
+            <p class="hero-kicker">Do balcão à entrega, para assistência técnica de celular.</p>
             <h1 class="text-grad">Da bancada à entrega, <br><span class="blue-grad">num sistema só.</span></h1>
             <div class="hero-actions">
               <!-- PWA, não APK. o sistema é web, então instalar pelo próprio
@@ -1930,7 +1936,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
                    oferecer instalação (iOS, desktop sem suporte, ou já
                    instalado), o botão ainda leva a algum lugar em vez de
                    morrer no clique. o JS lá embaixo é que o promove. -->
-              <a href="#modulos" class="btn btn-primary" id="btn-instalar">Instalar o aplicativo</a>
+              <a href="#modulos" class="btn btn-primary" id="btn-instalar">Deixar na tela de início</a>
               <a href="#modulos" class="btn btn-ghost">Ver como funciona</a>
             </div>
           </div>
@@ -1974,7 +1980,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
       <div class="sp-item" style="--t:.10">
         <div>
           <b>Você conserta. Ele acompanha.</b>
-          <span>O status muda no link do cliente no mesmo instante em que muda na bancada.</span>
+          <span>Você muda a etapa na bancada; o link do cliente já mostra a nova.</span>
         </div>
         <i class="sp-ponto"></i>
       </div>
@@ -1993,7 +1999,6 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
           <b>iPhone 12 · tela trincada</b>
           <span>OS 2431 · Marina Rocha</span>
         </div>
-        <span class="st-vivo"><i></i>ao vivo</span>
       </div>
 
       <div class="st-linha">
@@ -2018,7 +2023,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
       <div class="st-dados">
         <div><span>Valor</span><b>R$ 420</b></div>
         <div><span>Prazo</span><b>2 dias</b></div>
-        <div><span>Retirada</span><b>qui, 16h</b></div>
+        <div><span>Garantia</span><b>90 dias</b></div>
       </div>
     </div>
 
@@ -2036,7 +2041,6 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             <span class="quando">há 2 dias</span>
           </div>
         </div>
-        <span class="painel-selo">✓ Verificado</span>
       </div>
       <p class="painel-msg">Ficou perfeito e entregaram antes do prazo. Melhor assistência da cidade.</p>
     </div>
@@ -2076,8 +2080,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             <path d="M8.8 11.4h6.4M8.8 15h4.2"/>
           </svg>
         </span>
-        <h3>Acompanha o conserto ao vivo</h3>
-        <p>Recebido, orçamento, em conserto, pronto. Cada etapa aparece no link do cliente assim que acontece.</p>
+        <h3>Acompanha o conserto sozinho</h3>
+        <p>Recebido, orçamento, em conserto, pronto. Cada etapa fica registrada no link do cliente, com data e hora.</p>
       </article>
 
       <article class="carta" style="--i:1">
@@ -2098,8 +2102,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             <path d="M3.6 7.5 12 11.6l8.4-4.1M12 11.6v9"/>
           </svg>
         </span>
-        <h3>Valor, prazo e data de retirada</h3>
-        <p>Tudo no mesmo link, atualizado na hora. Fim das três ligações perguntando se já pode buscar.</p>
+        <h3>Orçamento item a item</h3>
+        <p>Tudo no mesmo link, sempre com o dado de agora. Fim das três ligações perguntando se já pode buscar.</p>
       </article>
     </div>
   </div>
@@ -2168,12 +2172,36 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 </section>
 
 
+<!-- ============== FECHO: o único ponto de ação da página ============== -->
+<section class="fecho" id="contato">
+  <div class="container">
+    <div class="fecho-caixa">
+      <h2 class="text-grad">Quer ver rodando <br>na <span class="blue-grad">sua oficina?</span></h2>
+      <p>Eu instalo com você em 20 minutos, por chamada ou aí na loja. Você me passa o nome
+         da oficina, a gente cadastra as OS que estão na sua bancada agora, e hoje mesmo você
+         entrega o primeiro link pro seu cliente.</p>
+
+      <div class="fecho-acoes">
+        <!-- TODO: trocar 55DDDNUMERO pelo seu WhatsApp com DDI+DDD, ex: 5551999998888.
+             enquanto estiver assim, o botão abre o wa.me num número inválido. -->
+        <a class="btn btn-primary"
+           href="https://wa.me/55DDDNUMERO?text=Oi%20Eduardo%2C%20vi%20o%20FixCell%20e%20queria%20ver%20rodando%20na%20minha%20oficina"
+           target="_blank" rel="noopener">Falar comigo no WhatsApp</a>
+        <a class="btn btn-ghost" href="#modulos">Rever o que ele faz</a>
+      </div>
+
+      <p class="fecho-micro">Sem contrato e sem cadastro para conversar. Se não servir, a gente para por aí.</p>
+    </div>
+  </div>
+</section>
+
 <!-- INDICADOR DE ROLAGEM: um ponto por seção, no lugar da barra nativa.
      é também navegação — cada ponto leva à sua seção. -->
 <nav class="rolagem" aria-label="Seções da página">
   <a href="#hero"    class="rol-ponto" data-rotulo="Início"></a>
   <a href="#modulos" class="rol-ponto" data-rotulo="O que faz"></a>
   <a href="#cliente" class="rol-ponto" data-rotulo="Seu cliente"></a>
+  <a href="#contato" class="rol-ponto" data-rotulo="Falar"></a>
 </nav>
 
 <footer>
@@ -2653,7 +2681,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 
   addEventListener('appinstalled', () => {
     convite = null;
-    btn.textContent = 'Aplicativo instalado';
+    btn.textContent = 'Já está na sua tela';
   });
 
   /* iOS não implementa beforeinstallprompt: lá a instalação é manual,

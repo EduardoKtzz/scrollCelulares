@@ -1,7 +1,7 @@
 {
-  "name": "FixCell — gestão para assistência técnica de celular",
+  "name": "FixCell",
   "short_name": "FixCell",
-  "description": "O seu cliente acompanha o conserto por um link: etapa, valor, prazo e data de retirada.",
+  "description": "Conheça o FixCell: o seu cliente acompanha o conserto por um link, sem app e sem cadastro.",
   "lang": "pt-BR",
   "dir": "ltr",
   "start_url": "./",
