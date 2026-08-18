@@ -8,6 +8,9 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <title>FixCell — Sistema para assistência técnica de celular</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#080808">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -1892,15 +1895,15 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             <p class="hero-kicker">Sistema completo para assistência técnica de celular.</p>
             <h1 class="text-grad">Da bancada à entrega, <br><span class="blue-grad">num sistema só.</span></h1>
             <div class="hero-actions">
-              <!-- TODO: o APK ainda NÃO EXISTE. o href já aponta para o lugar
-                   certo: é só pôr o arquivo em downloads/fixcell.apk. até lá
-                   este botão dá 404.
+              <!-- PWA, não APK. o sistema é web, então instalar pelo próprio
+                   navegador dispensa o APK, o aviso de "arquivo perigoso" do
+                   Chrome e a permissão de fontes desconhecidas do Android.
 
-                   o rótulo diz "Android" de propósito. APK não instala em
-                   iPhone nem em desktop, e quem baixa sem saber disso fica
-                   com um arquivo inútil achando que o site quebrou — dizer a
-                   plataforma no botão evita o download errado. -->
-              <a href="downloads/fixcell.apk" class="btn btn-primary" download>Baixar o aplicativo Android</a>
+                   o href vai para #modulos de propósito: se o navegador não
+                   oferecer instalação (iOS, desktop sem suporte, ou já
+                   instalado), o botão ainda leva a algum lugar em vez de
+                   morrer no clique. o JS lá embaixo é que o promove. -->
+              <a href="#modulos" class="btn btn-primary" id="btn-instalar">Instalar o aplicativo</a>
               <a href="#modulos" class="btn btn-ghost">Ver como funciona</a>
             </div>
           </div>
@@ -2551,6 +2554,69 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 
   resize();
   liga();
+})();
+
+/* ---------- PWA: service worker e o botão de instalar ---------- */
+(function(){
+  if('serviceWorker' in navigator){
+    /* depois do load: registrar antes disputa banda com a fonte e o Lenis.
+       o erro vai para o console em vez de ser engolido — falha de SW não
+       quebra a página (tudo aqui é progressivo), mas engolir em silêncio
+       esconde exatamente o caso em que o PWA parou de instalar. */
+    addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => {
+        console.warn('[FixCell] service worker não registrou:', err.message);
+      });
+    });
+  }
+
+  const btn = document.getElementById('btn-instalar');
+  if(!btn) return;
+
+  const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const jaAberto = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  let convite = null;
+
+  if(jaAberto){
+    /* já está rodando instalado: oferecer instalação de novo é ruído */
+    btn.textContent = 'Ver como funciona';
+    btn.setAttribute('href', '#modulos');
+    return;
+  }
+
+  /* o navegador dispara isto quando a página cumpre os critérios de
+     instalação. o preventDefault é obrigatório: sem ele o evento se
+     consome no banner nativo e não há como reabrir depois. */
+  addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    convite = e;
+  });
+
+  addEventListener('appinstalled', () => {
+    convite = null;
+    btn.textContent = 'Aplicativo instalado';
+  });
+
+  /* iOS não implementa beforeinstallprompt: lá a instalação é manual,
+     pelo menu de compartilhamento. o botão vira instrução, em vez de
+     prometer algo que aquele navegador não sabe fazer. */
+  if(ehIOS) btn.textContent = 'Adicionar à tela de início';
+
+  btn.addEventListener('click', async e => {
+    if(convite){
+      e.preventDefault();
+      convite.prompt();
+      await convite.userChoice;
+      convite = null;              /* o evento é de uso único */
+      return;
+    }
+    if(ehIOS){
+      e.preventDefault();
+      btn.textContent = 'Compartilhar → Adicionar à Tela de Início';
+      setTimeout(() => { btn.textContent = 'Adicionar à tela de início'; }, 4500);
+    }
+    /* fora disso o link segue para #modulos, que é o padrão do markup */
+  });
 })();
 </script>
 </body>
