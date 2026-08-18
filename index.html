@@ -549,20 +549,49 @@ a{color:inherit;text-decoration:none}
   border-bottom:1px solid rgba(255,255,255,.09);
 }
 .st-topo b{font-size:1em;font-weight:600;letter-spacing:-.015em;display:block}
-.st-topo span{display:block;color:#93a2ba;font-size:.78em;margin-top:.28em}
+/* o subtítulo mora dentro do bloco do título; o selo é IRMÃO dele.
+   sem o `div`, esta regra pegava o selo também — e com 0-1-1 contra
+   0-1-0 ela vencia a classe dele, deixando o selo display:block e cinza.
+   o pontinho virava display:inline, onde width e height são ignorados:
+   ele existia no DOM e media zero. */
+.st-topo div span{display:block;color:#93a2ba;font-size:.78em;margin-top:.28em}
 /* selo "ao vivo": o ponto pulsa. é o que diz que o dado é de agora, e
    custa uma opacidade — nada de sombra com raio interpolado. */
+/* o selo "ao vivo" é a promessa da seção inteira: o cliente vê o
+   conserto acontecer. ele precisa PUXAR o olho para dentro do card.
+   o halo é verde e estático — quem se move é o anel, e movimento
+   custa menos que luz variável. */
 .st-vivo{
   display:inline-flex;align-items:center;gap:.4em;flex:none;
-  font-size:.7em;font-weight:700;color:#9fe3c0;
-  background:rgba(34,197,94,.14);box-shadow:inset 0 0 0 1px rgba(34,197,94,.30);
+  font-size:.7em;font-weight:700;color:#b6f0d3;
+  background:rgba(34,197,94,.18);
+  box-shadow:
+    inset 0 0 0 1px rgba(34,197,94,.42),
+    0 0 20px rgba(34,197,94,.30);      /* halo do selo, pintado uma vez */
   border-radius:999px;padding:.42em .72em;
 }
 .st-vivo i{
-  width:.5em;height:.5em;border-radius:50%;background:#22c55e;flex:none;
+  position:relative;                    /* âncora do anel */
+  width:.5em;height:.5em;border-radius:50%;background:#3ddc7f;flex:none;
+  /* brilho ESTÁTICO no ponto: desfoque animado repintaria a cada quadro,
+     que é a regra mais cara do arquivo. aqui só a opacidade varia. */
+  box-shadow:0 0 5px rgba(52,220,127,.95), 0 0 12px rgba(34,197,94,.55);
   animation:stPulsa 2s ease-in-out infinite;
 }
-@keyframes stPulsa{0%,100%{opacity:1}55%{opacity:.35}}
+/* ANEL QUE SE ABRE — o sinal clássico de transmissão ao vivo. só mexe
+   em scale e opacity, as duas propriedades que o compositor resolve
+   sozinho: nenhum pixel é repintado durante a animação. */
+.st-vivo i::after{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  box-shadow:0 0 0 1.5px rgba(52,220,127,.75);
+  animation:stAnel 2s ease-out infinite;
+}
+@keyframes stPulsa{0%,100%{opacity:1}55%{opacity:.45}}
+@keyframes stAnel{
+  0%   {scale:1;   opacity:.75}
+  70%  {scale:2.9; opacity:0}
+  100% {scale:2.9; opacity:0}
+}
 
 /* --- a linha do tempo do conserto --- */
 .st-linha{display:flex;flex-direction:column}
@@ -672,7 +701,7 @@ a{color:inherit;text-decoration:none}
      bancada à entrega" lê como bug de renderização, não como narrativa.
      essa rampa de entrada é a MESMA nas cinco camadas, então ali elas
      mudam juntas e a separação não economiza — o ganho está na cura
-     (--pse .34 → .70), que é a maior parte da cena. */
+     (--pse .40 → .70), que é a maior parte da cena. */
   opacity:calc(clamp(0, calc((var(--pse,0) - .04) * 8.3), 1) * (1 - var(--l)));
 }
 .rachadura path{
@@ -706,7 +735,7 @@ a{color:inherit;text-decoration:none}
      se ele borra as fissuras do miolo, ele está grande demais. */
   width:26%;aspect-ratio:1;border-radius:50%;
   background:radial-gradient(closest-side,rgba(190,225,255,.10),transparent 72%);
-  --t:.58; --k:8.3;
+  --t:.60; --k:10;
   --l:clamp(0, calc((var(--pse,0) - var(--t)) * var(--k)), 1);
   opacity:calc(clamp(0, calc((var(--pse,0) - .04) * 8.3), 1) * (1 - var(--l)));
 }
@@ -1556,7 +1585,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   /* a cena do status é dirigida por SCROLL, não por animação — as etapas
      seguem construindo normalmente. o único movimento por tempo ali é o
      ponto do selo "ao vivo", e é ele que para. */
-  .st-vivo i{animation:none}
+  .st-vivo i,.st-vivo i::after{animation:none}
   /* a deriva ambiente para; o avanço pelo scroll fica, porque é gesto
      da própria pessoa */
   .grade{animation:none}
@@ -1703,19 +1732,19 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             <span class="rach-bloom"></span>
             <!-- CAMADA 5: as pontas que correm até a borda — as mais finas, primeiras a fechar -->
             <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
-                 style="--t:.34;--k:10" stroke-width="0.26" stroke-opacity="0.2">
+                 style="--t:.40;--k:10" stroke-width="0.26" stroke-opacity="0.2">
               <path class="halo" stroke-width="0.8" d="M101.55 57.85 107.97 55.48 M83.84 111.03 87.5 126.18 M53.81 114.95 47.97 126.58 M33.02 41.36 24.34 35.59 M98.5 48.2 110.39 47.2 M96.52 95.57Q92.53 105.73 83.84 111.03 M110.39 47.2Q112.39 50.16 107.97 55.48"/>
               <path d="M101.55 57.85 107.97 55.48 M83.84 111.03 87.5 126.18 M53.81 114.95 47.97 126.58 M33.02 41.36 24.34 35.59 M98.5 48.2 110.39 47.2 M96.52 95.57Q92.53 105.73 83.84 111.03 M110.39 47.2Q112.39 50.16 107.97 55.48"/>
             </svg>
             <!-- CAMADA 4: o corpo longo das fissuras -->
             <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
-                 style="--t:.41;--k:10" stroke-width="0.36" stroke-opacity="0.26">
+                 style="--t:.45;--k:10" stroke-width="0.36" stroke-opacity="0.26">
               <path class="halo" stroke-width="0.95" d="M84.24 64.15 92.12 58.55 M92.12 58.55 101.55 57.85 M86.3 84.05 96.52 95.57 M75.27 95.13 83.84 111.03 M55.55 100.9 53.81 114.95 M32.06 78.04 28.82 82.84 M28.82 82.84 24.86 86.59 M33.57 63.74 25.8 58.77 M25.8 58.77 16.96 53.64 M43.91 46.63 39.84 39.39 M39.84 39.39 37.78 34.87 M45.81 53.15 33.02 41.36 M73.18 46.35 79.12 43.04 M74.72 48.98 78.66 44.53 M76.48 57.36 88.64 53.03 M88.64 53.03 98.5 48.2 M86.3 84.05Q83.65 92.06 75.27 95.13 M78.66 44.53Q86.68 46.28 88.64 53.03 M16.96 53.64Q26.74 43.73 37.78 34.87 M84.24 64.15 87.55 61.58 90.67 59.18 M75.27 95.13 74.64 98.15 73.79 100.62 M33.57 63.74 28.17 65.67 23.74 68.26"/>
               <path d="M84.24 64.15 92.12 58.55 M92.12 58.55 101.55 57.85 M86.3 84.05 96.52 95.57 M75.27 95.13 83.84 111.03 M55.55 100.9 53.81 114.95 M32.06 78.04 28.82 82.84 M28.82 82.84 24.86 86.59 M33.57 63.74 25.8 58.77 M25.8 58.77 16.96 53.64 M43.91 46.63 39.84 39.39 M39.84 39.39 37.78 34.87 M45.81 53.15 33.02 41.36 M73.18 46.35 79.12 43.04 M74.72 48.98 78.66 44.53 M76.48 57.36 88.64 53.03 M88.64 53.03 98.5 48.2 M86.3 84.05Q83.65 92.06 75.27 95.13 M78.66 44.53Q86.68 46.28 88.64 53.03 M16.96 53.64Q26.74 43.73 37.78 34.87 M84.24 64.15 87.55 61.58 90.67 59.18 M75.27 95.13 74.64 98.15 73.79 100.62 M33.57 63.74 28.17 65.67 23.74 68.26"/>
             </svg>
             <!-- CAMADA 3: o anel médio, onde o vidro começa a soltar -->
             <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
-                 style="--t:.47;--k:10" stroke-width="0.48" stroke-opacity="0.32">
+                 style="--t:.50;--k:10" stroke-width="0.48" stroke-opacity="0.32">
               <path class="caco" fill-opacity="0.059" d="M62.41 79.74 66.3 85.62 57.21 89.85 58.49 82.86Z"/>
               <path class="caco" fill-opacity="0.063" d="M48.15 82.51 44.01 85.95 32.06 78.04 43.26 75.66Z"/>
               <path class="caco" fill-opacity="0.047" d="M40.55 66.07 33.57 63.74 43.91 46.63 48.29 55.22Z"/>
@@ -1726,7 +1755,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             </svg>
             <!-- CAMADA 2: o que nasce do impacto, com os planos deslocados -->
             <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
-                 style="--t:.53;--k:10" stroke-width="0.62" stroke-opacity="0.38">
+                 style="--t:.55;--k:10" stroke-width="0.62" stroke-opacity="0.38">
               <path class="caco" fill-opacity="0.106" d="M63.83 75.41 64.69 77.62 62.41 79.74 60.4 77.32Z"/>
               <path class="caco" fill-opacity="0.101" d="M54.21 75.95 52.19 79.6 47.14 75.86 50.65 73.07Z"/>
               <path class="caco" fill-opacity="0.117" d="M50.65 73.07 47.14 75.86 45.44 71.58 51.01 70.05Z"/>
@@ -1740,7 +1769,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             </svg>
             <!-- CAMADA 1: a cratera: vidro pulverizado, o último a fechar -->
             <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
-                 style="--t:.58;--k:10" stroke-width="0.85" stroke-opacity="0.46">
+                 style="--t:.60;--k:10" stroke-width="0.85" stroke-opacity="0.46">
               <path class="cratera" d="M58 70 60.45 70.47 59.81 72.31Z M58 70 59.44 71.26 58.33 71.7Z M58 70 58.25 72.37 57.64 71.06Z M58 70 56.49 72.41 55.39 71.83Z M58 70 55.04 71.05 54.68 69.67Z M58 70 55.4 68.43 57.53 68.43Z M58 70 57 67.51 57.99 67.9Z M58 70 58.03 67.94 59.74 67.27Z M58 70 60.1 68.06 60.9 69.95Z"/>
               <path class="halo" stroke-width="1.35" d="M58 70 66.14 68.84 M66.14 68.84 68.89 67.72 M58 70 64.72 73.85 M58 70 63.83 75.41 M63.83 75.41 64.69 77.62 M60.4 77.32 62.41 79.74 M58 70 58.15 77.04 M58.15 77.04 58.49 82.86 M54.21 75.95 52.19 79.6 M58 70 50.65 73.07 M58 70 51.01 70.05 M51.01 70.05 45.44 71.58 M58 70 53.15 62.8 M53.15 62.8 52.94 60.8 M58 70 60.98 63.55 M58 70 64.76 66.43 M64.76 66.43 68.04 63.93 M66.14 68.84Q66 71.45 64.72 73.85 M64.72 73.85Q65.06 75.21 63.83 75.41 M63.83 75.41Q62.29 76.62 60.4 77.32 M60.4 77.32Q59.35 77.56 58.15 77.04 M58.15 77.04Q56 77.12 54.21 75.95 M54.21 75.95Q51.73 75.08 50.65 73.07 M50.65 73.07Q50.66 71.6 51.01 70.05 M51.01 70.05Q50.51 68.87 50.67 67.78 M50.67 67.78Q51.3 64.82 53.15 62.8 M53.15 62.8Q53.97 62.47 55.36 63.21 M55.36 63.21Q58.19 62.67 60.98 63.55 M60.98 63.55Q61.5 63.16 61.81 63.19 M61.81 63.19Q63.87 64.24 64.76 66.43"/>
               <path d="M58 70 66.14 68.84 M66.14 68.84 68.89 67.72 M58 70 64.72 73.85 M58 70 63.83 75.41 M63.83 75.41 64.69 77.62 M60.4 77.32 62.41 79.74 M58 70 58.15 77.04 M58.15 77.04 58.49 82.86 M54.21 75.95 52.19 79.6 M58 70 50.65 73.07 M58 70 51.01 70.05 M51.01 70.05 45.44 71.58 M58 70 53.15 62.8 M53.15 62.8 52.94 60.8 M58 70 60.98 63.55 M58 70 64.76 66.43 M64.76 66.43 68.04 63.93 M66.14 68.84Q66 71.45 64.72 73.85 M64.72 73.85Q65.06 75.21 63.83 75.41 M63.83 75.41Q62.29 76.62 60.4 77.32 M60.4 77.32Q59.35 77.56 58.15 77.04 M58.15 77.04Q56 77.12 54.21 75.95 M54.21 75.95Q51.73 75.08 50.65 73.07 M50.65 73.07Q50.66 71.6 51.01 70.05 M51.01 70.05Q50.51 68.87 50.67 67.78 M50.67 67.78Q51.3 64.82 53.15 62.8 M53.15 62.8Q53.97 62.47 55.36 63.21 M55.36 63.21Q58.19 62.67 60.98 63.55 M60.98 63.55Q61.5 63.16 61.81 63.19 M61.81 63.19Q63.87 64.24 64.76 66.43"/>
@@ -2097,8 +2126,10 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
          .04 → .16  a tela apaga e o vidro estilhaça
          .06        etapa "Recebido"
          .22        etapa "Orçamento"
-         .34 → .68  o vidro sara, de fora para dentro, cinco camadas
          .40        etapa "Em conserto"
+         .40 → .70  o vidro sara, de fora para dentro, cinco camadas
+                    — NÃO antes: nada pode consertar sozinho enquanto a
+                    linha do tempo ainda está em "Orçamento"
          .62        etapa "Pronto"
          .70 → .88  a TELA ACENDE de volta
          .70 → .95  valor, prazo e retirada aparecem

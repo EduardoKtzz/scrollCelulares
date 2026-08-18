@@ -138,11 +138,11 @@ console.log(JSON.stringify({
    vidro — traço único chapado é o que fazia parecer caneta. */
 const ESTILO = [
   //  --t   larg  opac  halo  título
-  ['.34', .26, .20, .80, 'as pontas que correm até a borda — as mais finas, primeiras a fechar'],
-  ['.41', .36, .26, .95, 'o corpo longo das fissuras'],
-  ['.47', .48, .32, 1.10, 'o anel médio, onde o vidro começa a soltar'],
-  ['.53', .62, .38, 1.25, 'o que nasce do impacto, com os planos deslocados'],
-  ['.58', .85, .46, 1.35, 'a cratera: vidro pulverizado, o último a fechar'],
+  ['.40', .26, .20, .80, 'as pontas que correm até a borda — as mais finas, primeiras a fechar'],
+  ['.45', .36, .26, .95, 'o corpo longo das fissuras'],
+  ['.50', .48, .32, 1.10, 'o anel médio, onde o vidro começa a soltar'],
+  ['.55', .62, .38, 1.25, 'o que nasce do impacto, com os planos deslocados'],
+  ['.60', .85, .46, 1.35, 'a cratera: vidro pulverizado, o último a fechar'],
 ];
 const linhas = [];
 for (let i = 0; i < 5; i++) {
