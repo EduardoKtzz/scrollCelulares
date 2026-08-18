@@ -124,4 +124,25 @@ mesmo tom é o que faz parecer desenho vetorial.
 
 Para conferir o resultado sem depender de screenshot, dá para rasterizar o SVG
 num `<canvas>` e medir a tinta média por faixa de raio: ela tem que **cair**
-do centro para fora, sem degrau. Hoje: `87 → 90 → 58 → 33 → 15 → 5 → 1`.
+do centro para fora, sem degrau. Hoje: `42 → 45 → 29 → 20 → 7 → 2 → 0,4`, com
+pico de luz em 187 (255 seria branco puro).
+
+## Hierarquia de luz da cena
+
+A trinca é cenário; o card de status é o produto. Quando a trinca ficou boa
+demais ela passou a roubar o card — e o aro do aparelho, que é a maior fonte
+da cena, piorava tudo.
+
+Um jeito de comparar as fontes entre si é somar `alfa × raio de desfoque` das
+sombras EXTERNAS e não pretas de cada uma (as `inset` não iluminam a cena, e
+sombra preta é peso, não luz):
+
+| fonte | antes | agora |
+|---|---|---|
+| aro do aparelho (`.phone-halo`) | 160,4 | 55,3 |
+| halo do card (`.status`) | 23,8 | 23,8 |
+| razão | 6,7× | **2,3×** |
+
+O halo do card não mudou, de propósito: quem tinha que recuar era o resto. O
+aparelho ainda emite mais porque é um objeto muito maior — o que mudou foi a
+ordem de grandeza.

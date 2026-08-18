@@ -47,7 +47,7 @@ for (let k = 0; k < ANEIS.length; k++) {
   for (let i = 0; i < N; i++) {
     const a = radiais[i], b = radiais[(i + 1) % N];
     if (k > a.ateAnel || k > b.ateAnel) continue;
-    if (rnd() < (k < 2 ? .12 : .28)) continue;        // corda ausente
+    if (rnd() < (k < 2 ? .15 : k < 4 ? .34 : .60)) continue;        // corda ausente
     const p = a.pts[k + 1], q = b.pts[k + 1];
     const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2;
     const d = Math.hypot(mx - IX, my - IY) || 1;
@@ -138,11 +138,11 @@ console.log(JSON.stringify({
    vidro — traço único chapado é o que fazia parecer caneta. */
 const ESTILO = [
   //  --t   larg  opac  halo  título
-  ['.34', .26, .38, .80, 'as pontas que correm até a borda — as mais finas, primeiras a fechar'],
-  ['.41', .36, .52, .95, 'o corpo longo das fissuras'],
-  ['.47', .48, .66, 1.10, 'o anel médio, onde o vidro começa a soltar'],
-  ['.53', .62, .82, 1.25, 'o que nasce do impacto, com os planos deslocados'],
-  ['.58', .85, 1,   1.35, 'a cratera: vidro pulverizado, o último a fechar'],
+  ['.34', .26, .20, .80, 'as pontas que correm até a borda — as mais finas, primeiras a fechar'],
+  ['.41', .36, .26, .95, 'o corpo longo das fissuras'],
+  ['.47', .48, .32, 1.10, 'o anel médio, onde o vidro começa a soltar'],
+  ['.53', .62, .38, 1.25, 'o que nasce do impacto, com os planos deslocados'],
+  ['.58', .85, .46, 1.35, 'a cratera: vidro pulverizado, o último a fechar'],
 ];
 const linhas = [];
 for (let i = 0; i < 5; i++) {
