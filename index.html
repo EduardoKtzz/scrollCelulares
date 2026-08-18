@@ -1929,15 +1929,19 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             <p class="hero-kicker">Do balcão à entrega, para assistência técnica de celular.</p>
             <h1 class="text-grad">Da bancada à entrega, <br><span class="blue-grad">num sistema só.</span></h1>
             <div class="hero-actions">
-              <!-- PWA, não APK. o sistema é web, então instalar pelo próprio
-                   navegador dispensa o APK, o aviso de "arquivo perigoso" do
-                   Chrome e a permissão de fontes desconhecidas do Android.
+              <!-- O PRIMÁRIO É A CONVERSA, e está aqui na primeira tela de
+                   propósito. O hero tem 1090vh: quem for ver a página em pé no
+                   balcão, com cliente esperando, não rola onze telas até o
+                   fecho. Se ele quiser falar, o caminho é imediato.
 
-                   o href vai para #modulos de propósito: se o navegador não
-                   oferecer instalação (iOS, desktop sem suporte, ou já
-                   instalado), o botão ainda leva a algum lugar em vez de
-                   morrer no clique. o JS lá embaixo é que o promove. -->
-              <a href="#modulos" class="btn btn-primary" id="btn-instalar">Deixar na tela de início</a>
+                   Aqui morava o botão de instalar o PWA — o botão mais
+                   destacado da página instalava o próprio folheto. O manifest
+                   e o service worker continuam no repositório, então quem
+                   quiser ainda instala pelo menu do navegador; o que saiu foi
+                   promover isso como se fosse o produto. -->
+              <a class="btn btn-primary"
+                 href="https://wa.me/5527988784048?text=Oi%20Eduardo%2C%20vi%20o%20FixCell%20e%20queria%20ver%20rodando%20na%20minha%20oficina"
+                 target="_blank" rel="noopener">Falar comigo no WhatsApp</a>
               <a href="#modulos" class="btn btn-ghost">Ver como funciona</a>
             </div>
           </div>
@@ -2151,8 +2155,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
           </svg>
         </span>
         <h3>Acaba o "já ficou pronto?"</h3>
-        <p>Ele ligou do telefone da mãe e não sabe o número da OS. Com o
-           link, ele mesmo vê a etapa.</p>
+        <p>Ele ligou do telefone da mãe e perdeu o comprovante. Digita o CPF
+           e os quatro últimos dígitos do telefone, e acha o conserto sozinho.</p>
       </article>
 
       <article class="portal-arg">
@@ -2172,6 +2176,39 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   </div>
 </section>
 
+
+<!-- ============== O LADO DA LOJA: quem assina é o dono, e até aqui a
+     página inteira falava com o cliente final. Reaproveita o layout da
+     seção do cliente de propósito — o olho já aprendeu a ler ali. ============== -->
+<section class="portal" id="bancada">
+  <div class="container">
+    <div class="sec-head">
+      <h2 class="text-grad">E do seu lado <br><span class="blue-grad">do balcão.</span></h2>
+      <p>O cliente ganha o link. Você ganha a bancada organizada sem mudar como trabalha.</p>
+    </div>
+
+    <div class="portal-grid">
+      <article class="portal-arg">
+        <h3>A fila se ordena sozinha</h3>
+        <p>Primeiro o que está travado esperando o cliente aprovar. Depois o que tem
+           mensagem nova. O painel te mostra onde está o dinheiro parado antes de você
+           procurar.</p>
+      </article>
+      <article class="portal-arg">
+        <h3>Ache pelo IMEI</h3>
+        <p>Código, número da OS, nome, telefone, marca, modelo ou IMEI — tudo na mesma
+           caixa. Inclusive para responder aquela pergunta de toda semana: esse aparelho
+           já passou aqui?</p>
+      </article>
+      <article class="portal-arg">
+        <h3>O comprovante sai pronto</h3>
+        <p>Aparelho, defeito, previsão e o código em corpo grande. Com a cláusula de
+           garantia pelo artigo 26 do CDC e as duas linhas de assinatura. O papel que
+           você já precisa entregar, sem você digitar de novo.</p>
+      </article>
+    </div>
+  </div>
+</section>
 
 <!-- ============== FECHO: o único ponto de ação da página ============== -->
 <section class="fecho" id="contato">
@@ -2200,6 +2237,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   <a href="#hero"    class="rol-ponto" data-rotulo="Início"></a>
   <a href="#modulos" class="rol-ponto" data-rotulo="O que faz"></a>
   <a href="#cliente" class="rol-ponto" data-rotulo="Seu cliente"></a>
+  <a href="#bancada" class="rol-ponto" data-rotulo="Seu balcão"></a>
   <a href="#contato" class="rol-ponto" data-rotulo="Falar"></a>
 </nav>
 
@@ -2642,9 +2680,13 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   liga();
 })();
 
-/* ---------- PWA: service worker e o botão de instalar ---------- */
-(function(){
-  if('serviceWorker' in navigator){
+  /* ---------- service worker ----------
+     A página continua instalável — manifest e sw.js estão no repositório e o
+     navegador oferece pelo próprio menu. O que saiu foi o BOTÃO que promovia
+     isso no hero: instalar a página de vendas não é o produto, e aquele era o
+     lugar mais valioso da página. */
+  (function(){
+    if(!('serviceWorker' in navigator)) return;
     /* depois do load: registrar antes disputa banda com a fonte e o Lenis.
        o erro vai para o console em vez de ser engolido — falha de SW não
        quebra a página (tudo aqui é progressivo), mas engolir em silêncio
@@ -2654,56 +2696,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
         console.warn('[FixCell] service worker não registrou:', err.message);
       });
     });
-  }
-
-  const btn = document.getElementById('btn-instalar');
-  if(!btn) return;
-
-  const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const jaAberto = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  let convite = null;
-
-  if(jaAberto){
-    /* já está rodando instalado: oferecer instalação de novo é ruído */
-    btn.textContent = 'Ver como funciona';
-    btn.setAttribute('href', '#modulos');
-    return;
-  }
-
-  /* o navegador dispara isto quando a página cumpre os critérios de
-     instalação. o preventDefault é obrigatório: sem ele o evento se
-     consome no banner nativo e não há como reabrir depois. */
-  addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    convite = e;
-  });
-
-  addEventListener('appinstalled', () => {
-    convite = null;
-    btn.textContent = 'Já está na sua tela';
-  });
-
-  /* iOS não implementa beforeinstallprompt: lá a instalação é manual,
-     pelo menu de compartilhamento. o botão vira instrução, em vez de
-     prometer algo que aquele navegador não sabe fazer. */
-  if(ehIOS) btn.textContent = 'Adicionar à tela de início';
-
-  btn.addEventListener('click', async e => {
-    if(convite){
-      e.preventDefault();
-      convite.prompt();
-      await convite.userChoice;
-      convite = null;              /* o evento é de uso único */
-      return;
-    }
-    if(ehIOS){
-      e.preventDefault();
-      btn.textContent = 'Compartilhar → Adicionar à Tela de Início';
-      setTimeout(() => { btn.textContent = 'Adicionar à tela de início'; }, 4500);
-    }
-    /* fora disso o link segue para #modulos, que é o padrão do markup */
-  });
-})();
+  })();
 </script>
 </body>
 </html>
