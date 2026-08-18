@@ -1055,13 +1055,29 @@ section{position:relative;z-index:2}
   border-radius:26px;padding:1.6em 1.4em;
   font-size:clamp(13px,1.15vw,17px);
   display:flex;flex-direction:column;
+  /* recorta o bloom e a varredura no raio do card */
+  overflow:hidden;
+  /* VIDRO, sem backdrop-filter. atrás dos cards só existe a grade fina do
+     túnel — desfocá-la de verdade custaria uma composição fora da tela por
+     quadro e renderia quase nada na tela. três camadas translúcidas dão a
+     mesma leitura e o compositor resolve sozinho:
+       1. bloom azul concentrado ATRÁS DO ÍCONE (não uma faixa no topo)
+       2. véu de vidro na diagonal, o reflexo do plano
+       3. corpo escuro, que afunda até quase preto no pé */
   background:
-    radial-gradient(125% 62% at 50% 0%,
-      rgba(74,152,255,.9), rgba(26,66,140,.55) 42%, transparent 74%),
-    linear-gradient(180deg, rgba(18,28,48,.92), rgba(7,11,18,.96));
+    radial-gradient(72% 44% at 50% 17%,
+      rgba(104,180,255,.80), rgba(38,98,196,.40) 46%, transparent 74%),
+    linear-gradient(158deg,
+      rgba(255,255,255,.11), rgba(255,255,255,.02) 40%, transparent 62%),
+    linear-gradient(180deg, rgba(16,26,46,.88), rgba(5,8,14,.97));
+  border:1px solid rgba(255,255,255,.10);
+  /* raios FIXOS: interpolar desfoque de sombra é das repinturas mais caras
+     que existem. o que respira é uma camada de opacidade, no ::before. */
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.16),
-    0 30px 60px rgba(0,0,0,.65);
+    inset 0 1px 0 rgba(255,255,255,.36),      /* aresta de luz no topo    */
+    inset 0 0 44px rgba(92,164,255,.15),      /* luz difusa interna       */
+    0 0 42px rgba(56,132,238,.30),            /* halo azul externo        */
+    0 30px 60px rgba(0,0,0,.65);              /* peso, assenta na cena    */
   /* O EIXO É O Z, e só ele. o translateX é fixo: define o lugar do card
      no leque e não muda mais. como o translateX vem ANTES do translateZ
      na cadeia, a perspectiva encolhe o deslocamento lateral junto com o
@@ -1092,6 +1108,46 @@ section{position:relative;z-index:2}
   animation-timing-function:ease-in-out;
   animation-iteration-count:infinite;
 }
+/* BLOOM QUE RESPIRA — a luz azul atrás do ícone, em camada própria.
+   anima SÓ opacity: o compositor resolve sem repintar o card. se isto
+   estivesse no background do .carta, cada quadro regeraria três
+   gradientes de 320x400. */
+.carta::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  border-radius:inherit;
+  background:radial-gradient(60% 38% at 50% 15%,
+    rgba(130,200,255,.55), rgba(52,124,224,.20) 50%, transparent 76%);
+  animation:cartaBloom var(--bdur,6s) ease-in-out infinite;
+  animation-delay:var(--fdel,0s);
+  animation-play-state:paused;
+}
+/* VARREDURA — o reflexo que atravessa o vidro, como luz passando por uma
+   placa. faixa estreita e inclinada que cruza e some; anima só translate,
+   e o overflow:hidden do card recorta no raio.
+   fica FORA do fluxo de tinta do card: nada aqui é repintado, só movido. */
+.carta::after{
+  content:'';position:absolute;top:-25%;bottom:-25%;left:-50%;width:34%;
+  pointer-events:none;
+  background:linear-gradient(100deg,
+    transparent, rgba(255,255,255,.14) 50%, transparent);
+  rotate:9deg;
+  animation:cartaVarre var(--vdur,7.5s) linear infinite;
+  animation-delay:var(--vdel,0s);
+  animation-play-state:paused;
+}
+/* só rodam com a seção em tela — mesma regra da grade do túnel */
+.modulos.visivel .carta::before,
+.modulos.visivel .carta::after{animation-play-state:running}
+@keyframes cartaBloom{
+  0%,100%{opacity:.55}
+  50%    {opacity:1}
+}
+/* a pausa em 68% é o que separa uma varredura da próxima: sem ela o
+   reflexo viraria um estrobo atravessando sem parar. */
+@keyframes cartaVarre{
+  0%      {translate:0}
+  68%,100%{translate:460% 0}
+}
 /* INCLINAÇÃO PRÓPRIA de cada um: os laterais viram para dentro (o de
    fora do leque recua, como num carrossel 3D) e o do meio ganha um giro
    pequeno, só para nenhum ficar chapado de frente. o --roll é o tombo
@@ -1099,28 +1155,64 @@ section{position:relative;z-index:2}
    o --znudge põe o do meio um pouco à frente: com os três no mesmo Z,
    quem decidiria a sobreposição seria a ordem do DOM.
    períodos primos entre si: o trio nunca volta a sincronizar. */
-.carta:nth-child(1){--tilt:16deg; --roll:-2.5deg;--znudge:-70px;--fdur:7s;  --fdel:0s}
-.carta:nth-child(2){--tilt:-4deg; --roll:1.5deg; --znudge:0px;  --fdur:8.6s;--fdel:-2.4s}
-.carta:nth-child(3){--tilt:-16deg;--roll:2.5deg; --znudge:-70px;--fdur:6.4s;--fdel:-4.1s}
+.carta:nth-child(1){--tilt:16deg; --roll:-2.5deg;--znudge:-70px;
+  --fdur:7s;  --fdel:0s;    --bdur:6s;  --vdur:7.5s;--vdel:-1.0s;--idur:5.2s;--idel:0s}
+.carta:nth-child(2){--tilt:-4deg; --roll:1.5deg; --znudge:0px;
+  --fdur:8.6s;--fdel:-2.4s; --bdur:7.3s;--vdur:9.1s;--vdel:-4.3s;--idur:6.1s;--idel:-1.9s}
+.carta:nth-child(3){--tilt:-16deg;--roll:2.5deg; --znudge:-70px;
+  --fdur:6.4s;--fdel:-4.1s; --bdur:5.4s;--vdur:8.3s;--vdel:-6.8s;--idur:4.7s;--idel:-3.3s}
 @keyframes flutua{
   0%,100%{translate:0 0;      rotate:0deg}
   50%    {translate:0 -18px;  rotate:1deg}
 }
+/* o ícone é a peça mais brilhante do card, e é ele que dá volume: luz
+   entrando pelo alto à esquerda, sombra interna no pé e halo próprio.
+   os raios são fixos — quem se move é o corpo inteiro, no translate. */
 .carta-ico{
-  width:5em;height:5em;border-radius:1.4em;margin-bottom:auto;
+  width:5.5em;height:5.5em;border-radius:1.55em;margin-bottom:auto;
+  /* centrado no card, com o texto seguindo alinhado à esquerda — é o
+     arranjo da referência. align-self porque o pai é flex em coluna:
+     o eixo transversal aqui é o horizontal. */
+  align-self:center;
   display:grid;place-items:center;
-  background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.05));
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.22), 0 .5em 1.4em rgba(0,0,0,.4);
+  /* CORPO ESCURO, não claro. o ladrilho vive em cima do bloom azul: se
+     ele também for azul claro, some dentro da própria luz que deveria
+     destacá-lo — sobra só o glifo branco boiando numa mancha. escuro,
+     ele recorta contra o bloom e volta a ler como peça sólida pegando
+     luz, que é o que a referência faz com o escudo e os cubos pretos. */
+  background:
+    radial-gradient(118% 118% at 28% 16%,
+      rgba(150,205,255,.30), rgba(120,180,255,.05) 52%, transparent 76%),
+    linear-gradient(158deg, rgba(18,32,58,.94), rgba(5,9,18,.97));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.34),      /* aresta de cima          */
+    inset 0 0 0 1px rgba(140,195,255,.22),    /* aro que recorta do bloom*/
+    inset 0 -.5em 1.1em rgba(0,4,14,.60),     /* o pé afunda             */
+    0 .6em 1.6em rgba(0,0,0,.55),             /* sombra projetada        */
+    0 0 1.6em rgba(70,150,255,.30);           /* halo do próprio ícone   */
+  /* FLUTUA NO CONTRATEMPO do card: períodos diferentes e nenhum múltiplo
+     do outro, então o ícone nunca acompanha o card — é essa defasagem que
+     lê como profundidade, e não como um bloco só balançando. */
+  animation:icoFlutua var(--idur,5.2s) ease-in-out infinite;
+  animation-delay:var(--idel,0s);
+}
+@keyframes icoFlutua{
+  0%,100%{translate:0 0;     rotate:0deg}
+  50%    {translate:0 -7px;  rotate:-2deg}
 }
 .carta-ico svg{
   width:52%;height:52%;fill:none;stroke:#fff;stroke-width:1.9;
   stroke-linecap:round;stroke-linejoin:round;
+  /* drop-shadow ESTÁTICO: acende o traço sem custar por quadro */
+  filter:drop-shadow(0 0 .3em rgba(160,210,255,.85));
 }
+/* título maior e mais leve, como na referência: o peso vem do tamanho,
+   não do bold — que a essa escala fecharia as contraformas. */
 .carta h3{
-  font-size:1.32em;font-weight:600;line-height:1.2;
-  letter-spacing:-.025em;margin-bottom:.5em;
+  font-size:1.42em;font-weight:500;line-height:1.22;
+  letter-spacing:-.028em;margin-bottom:.5em;
 }
-.carta p{font-size:.95em;line-height:1.5;color:rgba(255,255,255,.62)}
+.carta p{font-size:.82em;line-height:1.6;color:rgba(255,255,255,.56)}
 
 /* na tela estreita o leque aperta e os cards se sobrepõem — vira baralho
    aberto em vez de trio lado a lado. o transform não precisa ser
@@ -1180,7 +1272,12 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   .ilha-estado.e1{opacity:1}
   .ilha-estado i,.ilha-estado i::before{animation:none}
   .ilha-estado i::before{background:var(--cor)}
-  .carta{animation:none}
+  /* os cards param: a flutuação, o ícone no contratempo, o bloom que
+     respira e a varredura do reflexo. o ::before fica no estado aceso,
+     senão o card perde o brilho azul que é a identidade dele. */
+  .carta,.carta-ico{animation:none}
+  .carta::before{animation:none;opacity:.8}
+  .carta::after{animation:none;display:none}
   /* a deriva ambiente para; o avanço pelo scroll fica, porque é gesto
      da própria pessoa */
   .grade{animation:none}
