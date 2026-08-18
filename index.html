@@ -42,12 +42,25 @@
   /* 64vh (era 50): a 50vh a tela tinha 209px e o texto do chat caía
      para ~6px. o tamanho da conversa é refém do tamanho do aparelho. */
   --phone-end:64vh;
+  /* largura do aparelho JÁ ENCOLHIDO, pela mesma proporção 284/576 da
+     moldura. o painel de status se ancora nisto para ficar ao lado dele
+     em qualquer altura de janela, inclusive com os media queries que
+     mudam o --phone-end. */
+  --phone-w1:calc(var(--phone-end) * .4931);
   --phone-top:14vh;     /* distância do topo quando gigante      */
 
   /* progressos de scroll, escritos pelo JS */
   --p:0;    /* celular encolhe                     */
   --ptexto:0px; /* compensação vertical do texto do hero (ver .hero-text) */
   --pt:0;   /* texto do hero SAI                   */
+  /* CENA DO STATUS — o conserto acontecendo, entre o celular e a conversa.
+     são DUAS variáveis pelo mesmo motivo que o painel e a conversa são
+     separados: --ps é um PULSO (entra, segura, sai) e comanda a opacidade
+     da tela inteira; --pse é LINEAR e constrói as etapas uma a uma, do
+     mesmo jeito que --pa constrói os balões. um pulso não serve para
+     escalonar, porque volta a descer. */
+  --ps:0;   /* tela de status: pulso (entra E sai) */
+  --pse:0;  /* etapas do conserto acendendo, uma a uma */
   --pa:0;   /* interface do app ENTRA (depois do texto sumir) */
   --po:0;   /* peças flutuantes sobem                        */
   --pf:0;   /* FOCO NO CELULAR: luz migra do topo para o aro,
@@ -146,7 +159,11 @@ a{color:inherit;text-decoration:none}
    elas são frações dela — por isso, sempre que uma fase precisa de mais
    ou menos tempo, as outras são recompensadas nas frações para manter a
    distância absoluta. ver AGENDA DAS FASES no script. */
-.hero{position:relative;height:780vh}
+/* 920vh, eram 780. os 140 a mais são a cena do STATUS, encaixada entre o
+   celular e a conversa. as frações de TODAS as outras fases foram
+   recalculadas a partir das distâncias em vh, então nenhuma delas mudou
+   de tamanho — só de posição na régua. */
+.hero{position:relative;height:1090vh}
 .hero-sticky{position:sticky;top:0;height:100vh;overflow:hidden}
 
 /* z-index 5: acima do brilho e das peças de trás, abaixo das da frente —
@@ -418,8 +435,10 @@ a{color:inherit;text-decoration:none}
   position:absolute;top:3cqh;left:8.5%;right:8.5%;z-index:4;
   display:flex;align-items:center;justify-content:space-between;
   font-size:3cqw;font-weight:600;color:#fff;
-  /* chega junto com o cabeçalho, não ao longo de toda a conversa */
-  opacity:clamp(0, calc(var(--pa) * 6), 1);
+  /* acende JUNTO COM A TELA, no fim do conserto — antes disso o
+     aparelho está apagado, e relógio e bateria acesos sobre um display
+     morto entregariam que a tela desligada é só uma camada por cima. */
+  opacity:clamp(0, calc((var(--pse,0) - .74) * 6), 1);
 }
 .sb-dir{display:flex;align-items:center;gap:.34em}
 .barras{display:flex;align-items:flex-end;gap:.09em;height:.7em}
@@ -438,8 +457,8 @@ a{color:inherit;text-decoration:none}
   position:absolute;left:50%;bottom:1.2cqh;translate:-50% 0;z-index:4;
   width:33%;height:.5cqh;min-height:2px;border-radius:999px;
   background:rgba(255,255,255,.82);
-  /* chega junto com o cabeçalho, não ao longo de toda a conversa */
-  opacity:clamp(0, calc(var(--pa) * 6), 1);
+  /* mesma regra da barra de status: só existe com a tela acesa */
+  opacity:clamp(0, calc((var(--pse,0) - .74) * 6), 1);
 }
 
 /* ============================================================
@@ -461,6 +480,219 @@ a{color:inherit;text-decoration:none}
   padding:7.4cqh .8em 2.8cqh;
   /* sai inteiro no primeiro quarto do fecho verde */
   opacity:clamp(0, calc(1 - var(--pv) * 4), 1);
+}
+
+/* ============================================================
+   CENA DO STATUS — o conserto acontecendo, dentro do aparelho
+
+   entra depois do texto do hero e sai quando a conversa começa. é a
+   ponte que faltava na narrativa: o celular chega, o conserto ACONTECE
+   à vista, e só então vem o pós-venda com a garantia.
+
+   O PAINEL FICA FORA DO APARELHO, ao lado dele. dentro da tela ele
+   competia com a própria trinca pelos mesmos pixels, e num aparelho já
+   encolhido as quatro etapas ficavam minúsculas. fora, o celular sobra
+   para uma coisa só: mostrar o vidro quebrado e depois são.
+
+   por estar fora da .screen, as medidas voltam a ser de viewport — cq
+   aqui não teria contra o que resolver. o painel se ancora em
+   --phone-w1, a largura do aparelho encolhido, então acompanha a
+   moldura em qualquer altura de janela.
+   ============================================================ */
+.status{
+  position:absolute;z-index:22;
+  /* à DIREITA da moldura: metade da tela + metade do aparelho + respiro */
+  left:calc(50% + var(--phone-w1) / 2 + clamp(20px,3.5vw,64px));
+  top:50%;translate:0 -50%;
+  width:min(340px, 27vw);
+  padding:1.45em 1.5em;
+  border-radius:20px;
+  font-size:clamp(12px,1.05vw,16px);
+  /* o card estava no mesmo plano visual do fundo: sem aresta, com halo
+     fraco, e o brilho do aparelho engolia ele. o que dá presença é a
+     BORDA (silhueta), o halo azul próprio (para os dois lerem como um
+     par, não um dominando o outro) e o corpo um pouco mais claro. */
+  /* o corpo precisa SUBIR de verdade: contra o #080808 da página, o
+     valor anterior dava 1,12:1 de contraste — abaixo de ~1,3 o olho lê
+     como a mesma superfície, e nenhuma borda salva isso. agora dá
+     1,40:1, escuro ainda, mas um plano à parte. o pé também subiu:
+     terminar em quase-preto era o que fazia o card se dissolver embaixo. */
+  background:
+    radial-gradient(118% 60% at 50% 0%,
+      rgba(84,160,255,.46), rgba(30,74,150,.20) 48%, transparent 78%),
+    linear-gradient(180deg, rgba(26,42,72,.95), rgba(11,17,30,.96));
+  /* borda AZULADA, não branca: ela é a silhueta do card, e puxando para
+     o azul entra na mesma família do halo em vez de brigar com ele. */
+  border:1px solid rgba(140,190,255,.24);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.34),   /* aresta de luz no topo    */
+    inset 0 0 48px rgba(92,168,255,.12),   /* luz interna difusa       */
+    0 0 66px rgba(52,130,235,.36),         /* halo azul, o que o solta */
+    0 26px 54px rgba(0,0,0,.62);           /* peso, assenta na cena    */
+  opacity:var(--ps,0);
+  /* chega com intenção, como o card de avaliação faz mais adiante.
+     faixa curta de propósito: escala grande borraria o texto no meio. */
+  scale:calc(.945 + .055 * var(--ps,0));
+  pointer-events:none;
+}
+/* na tela estreita não existe vão ao lado do aparelho: o painel desce
+   para o pé da cena e atravessa a moldura, como uma folha por cima. */
+@media(max-width:900px){
+  .status{
+    left:50%;translate:-50% 0;top:auto;bottom:5vh;
+    width:min(400px,88vw);font-size:13px;
+  }
+}
+.st-topo{
+  display:flex;align-items:center;justify-content:space-between;gap:.7em;
+  padding-bottom:.85em;margin-bottom:1em;
+  border-bottom:1px solid rgba(255,255,255,.09);
+}
+.st-topo b{font-size:1em;font-weight:600;letter-spacing:-.015em;display:block}
+.st-topo span{display:block;color:#93a2ba;font-size:.78em;margin-top:.28em}
+/* selo "ao vivo": o ponto pulsa. é o que diz que o dado é de agora, e
+   custa uma opacidade — nada de sombra com raio interpolado. */
+.st-vivo{
+  display:inline-flex;align-items:center;gap:.4em;flex:none;
+  font-size:.7em;font-weight:700;color:#9fe3c0;
+  background:rgba(34,197,94,.14);box-shadow:inset 0 0 0 1px rgba(34,197,94,.30);
+  border-radius:999px;padding:.42em .72em;
+}
+.st-vivo i{
+  width:.5em;height:.5em;border-radius:50%;background:#22c55e;flex:none;
+  animation:stPulsa 2s ease-in-out infinite;
+}
+@keyframes stPulsa{0%,100%{opacity:1}55%{opacity:.35}}
+
+/* --- a linha do tempo do conserto --- */
+.st-linha{display:flex;flex-direction:column}
+.st-etapa{
+  /* mesmo cálculo do .msg: limiar próprio, progresso local, clamp
+     obrigatório para o translate não inverter de sinal no fim */
+  --l:clamp(0, calc((var(--pse) - var(--t)) * 3.4), 1);
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+  gap:.8em;padding:.55em 0;position:relative;
+  opacity:calc(.22 + .78 * var(--l));
+  transform:translateX(calc((1 - var(--l)) * -.5em));
+}
+/* o trilho que liga uma bolha à outra */
+.st-etapa:not(:last-child)::before{
+  content:'';position:absolute;left:.47em;top:calc(50% + .55em);
+  width:2px;height:calc(100% - 1.1em);
+  background:rgba(255,255,255,.12);
+}
+.st-bolha{
+  width:1.05em;height:1.05em;border-radius:50%;flex:none;
+  display:grid;place-items:center;
+  /* a cor vem do progresso local: cinza quando pendente, azul quando
+     a etapa acontece. interpolar background-color de um elemento
+     minúsculo é barato — o custo proibido é repintar áreas grandes.
+     o rgba de fallback vem PRIMEIRO: se color-mix não existir, a
+     declaração seguinte é descartada e a bolha continua visível. */
+  background:rgba(255,255,255,.10);
+  background:color-mix(in srgb, var(--accent-1) calc(var(--l) * 100%), rgba(255,255,255,.10));
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.20);
+  scale:calc(.82 + .18 * var(--l));
+}
+.st-bolha svg{
+  width:.55em;height:.55em;fill:none;stroke:#04121f;
+  stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round;
+  opacity:var(--l);
+}
+.st-etapa b{font-size:.88em;font-weight:600;letter-spacing:-.01em}
+.st-etapa i{font-style:normal;color:#8e9bb3;font-size:.75em;white-space:nowrap}
+
+/* --- os dados que o cliente consulta sem ligar --- */
+.st-dados{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:.5em;
+  margin-top:1em;padding-top:.9em;border-top:1px solid rgba(255,255,255,.09);
+  /* chegam depois das etapas, no fim da construção */
+  opacity:clamp(0, calc((var(--pse) - .70) * 4), 1);
+}
+.st-dados div{
+  background:rgba(255,255,255,.075);box-shadow:inset 0 0 0 1px rgba(255,255,255,.11);
+  border-radius:.6em;padding:.62em .55em;
+}
+.st-dados span{display:block;color:#93a2ba;font-size:.66em;margin-bottom:.3em}
+.st-dados b{font-size:.92em;font-weight:700;letter-spacing:-.02em}
+
+/* --- A TELA DESLIGADA ---
+   celular quebrado é celular apagado. cobre o display inteiro enquanto
+   o conserto anda, e SAI no fim: é a tela voltando a acender, o último
+   sinal de que o aparelho está pronto. */
+.tela-morta{
+  position:absolute;inset:0;z-index:6;pointer-events:none;
+  background:linear-gradient(168deg,#05070c,#010307 60%,#04070d);
+  opacity:calc(
+    clamp(0, calc((var(--pse,0) - .04) * 8.3), 1)
+    * (1 - clamp(0, calc((var(--pse,0) - .70) * 5.5), 1)));
+}
+
+/* ============================================================
+   A TRINCA — o aparelho chega quebrado e SARA com o conserto
+
+   é a mesma --pse das etapas: a trinca aparece de uma vez, como um
+   impacto, segura enquanto o orçamento roda, e some por CAMADAS
+   conforme o conserto anda. quando "Pronto" acende, o vidro está
+   limpo. o produto contando a própria história, sem legenda.
+
+   z-index 7: a trinca é o VIDRO, então fica acima de tudo que é
+   conteúdo de tela — inclusive da ilha (z 5). o fecho verde (z 5 e 6)
+   só acontece em --pv, muito depois de ela ter sumido.
+
+   SARA DE FORA PARA DENTRO: as fissuras longas somem primeiro e o
+   ponto de impacto é o último a fechar. o contrário — miolo primeiro —
+   lê como a imagem apagando, não como vidro se refazendo.
+   ============================================================ */
+.rachadura{position:absolute;inset:0;z-index:7;pointer-events:none}
+/* UM <svg> POR CAMADA, não um <svg> com cinco <g> dentro.
+   opacity num <g> NÃO é propriedade de compositor: filho de SVG não é
+   caixa promovível, então ali a opacidade é efeito de PINTURA dentro do
+   paint chunk do <svg> raiz. Com tudo num SVG só, bastava uma camada
+   mudar para os ~60 traços rasterizarem de novo, sobre a tela inteira.
+   Separando, só a camada em transição repinta.
+
+   é o mesmo raciocínio que o arquivo já aplicou na .vinheta e no
+   .painel-scrim, onde a separação em elementos distintos é justamente
+   o que faz a composição funcionar.
+
+   SEM will-change aqui, de propósito: a .screen tem tamanho de LAYOUT
+   gigante o tempo todo (o .phone-wrap encolhe por scale, não por
+   altura), e cinco camadas promovidas desse tamanho custariam dezenas
+   de MB cada. o ganho de separar não depende de promoção nenhuma. */
+.rachadura svg{
+  position:absolute;inset:0;display:block;width:100%;height:100%;
+  /* cada camada tem limiar (--t) e velocidade (--k) próprios, o mesmo
+     idioma dos balões e das etapas. o --k é 1/duração porque calc() não
+     divide por variável com segurança em todo navegador. */
+  --l:clamp(0, calc((var(--pse,0) - var(--t)) * var(--k)), 1);
+  /* ENTRA entre .04 e .16 do --pse, que em p é .081 → .113 — exatamente
+     a janela em que o texto do hero acaba de sair. antes disso a trinca
+     apareceria POR CIMA da manchete, e vidro quebrado atrás de "Da
+     bancada à entrega" lê como bug de renderização, não como narrativa.
+     essa rampa de entrada é a MESMA nas cinco camadas, então ali elas
+     mudam juntas e a separação não economiza — o ganho está na cura
+     (--pse .34 → .70), que é a maior parte da cena. */
+  opacity:calc(clamp(0, calc((var(--pse,0) - .04) * 8.3), 1) * (1 - var(--l)));
+}
+.rachadura path{
+  fill:none;stroke:#dce9ff;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+/* CACOS: os planos de vidro deslocado entre uma fissura e outra. é o
+   que separa "riscos numa tela" de "vidro estilhaçado" — a luz pega
+   diferente em cada face. preenchimento sem traço, bem discreto. */
+.rachadura .caco{fill:rgba(200,228,255,.075);stroke:none}
+/* clarão do impacto: um radial simples, sem filtro. some junto com a
+   camada mais funda, que é a última a fechar. */
+.rach-bloom{
+  /* 58% / 34.5% é o impacto (58,70) no viewBox de 100x203 */
+  position:absolute;left:58%;top:34.5%;translate:-50% -50%;
+  width:56%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(190,225,255,.30),transparent 70%);
+  --t:.58; --k:8.3;
+  --l:clamp(0, calc((var(--pse,0) - var(--t)) * var(--k)), 1);
+  opacity:calc(clamp(0, calc((var(--pse,0) - .04) * 8.3), 1) * (1 - var(--l)));
 }
 
 /* ============================================================
@@ -1278,6 +1510,10 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   .carta,.carta-ico{animation:none}
   .carta::before{animation:none;opacity:.8}
   .carta::after{animation:none;display:none}
+  /* a cena do status é dirigida por SCROLL, não por animação — as etapas
+     seguem construindo normalmente. o único movimento por tempo ali é o
+     ponto do selo "ao vivo", e é ele que para. */
+  .st-vivo i{animation:none}
   /* a deriva ambiente para; o avanço pelo scroll fica, porque é gesto
      da própria pessoa */
   .grade{animation:none}
@@ -1366,6 +1602,10 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
           </div>
           <div class="home-bar"></div>
 
+          <!-- A TELA DESLIGADA: o aparelho chega apagado e só volta a
+               acender quando o conserto termina -->
+          <div class="tela-morta"></div>
+
           <!-- A CONVERSA: cliente elogiando o serviço -->
           <div class="app">
             <div class="chat-topo">
@@ -1399,6 +1639,62 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
               <span class="campo">Escreva uma mensagem<span>🙂</span></span>
               <span class="enviar">&#10148;</span>
             </div>
+          </div>
+
+          <!-- A TRINCA: impacto em (63,74), fora do centro. cada fissura
+               tem três segmentos, e as camadas saram de fora para dentro.
+               vários subcaminhos num `d` só — dez fissuras em um path, em
+               vez de dez elementos. -->
+          <div class="rachadura" aria-hidden="true">
+            <span class="rach-bloom"></span>
+            <!-- CAMADA 5: as pontas que correm até a borda. primeiras a
+                 fechar, e as mais finas — lá o vidro só está riscado. -->
+            <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
+                 style="--t:.34;--k:10" stroke-width=".34" stroke-opacity=".42">
+              <path d="M33 30 26 12 M54 24 55 6 M85 36 93 22 M95 58 100 55
+                       M85 79 100 80 M90 114 97 130 M66 124 64 148 M42 122 38 146
+                       M20 104 8 120 M15 62 2 60 M22 44 14 36 M70 20 73 4
+                       M53 116 50 144 M88 69 100 66"/>
+              <path d="M14 56 34 26 62 20 90 38 94 74 78 104 46 108Z"/>
+            </svg>
+            <!-- CAMADA 4: o corpo longo das fissuras, com as ramificações -->
+            <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
+                 style="--t:.42;--k:10" stroke-width=".45" stroke-opacity=".56">
+              <path d="M42 46 33 30 M57 42 54 24 M74 49 85 36 M83 63 95 58
+                       M71 75 85 79 M79 96 90 114 M64 103 66 124 M47 101 42 122
+                       M34 90 20 104 M31 66 15 62 M36 54 22 44 M66 38 70 20
+                       M74 71 88 69 M53 84 47 101
+                       M79 96 86 94 M47 101 40 104 M34 90 30 84 M66 124 72 128"/>
+            </svg>
+            <!-- CAMADA 3: o segundo anel e o trecho médio -->
+            <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
+                 style="--t:.50;--k:10" stroke-width=".58" stroke-opacity=".7">
+              <path d="M49 60 42 46 M56 57 57 42 M66 60 74 49 M70 66 83 63
+                       M58 70 71 75 M69 82 79 96 M62 85 64 103 M53 84 47 101
+                       M47 79 34 90 M45 68 31 66 M48 63 36 54 M63 54 66 38
+                       M57 92 53 116 M42 46 34 44 M74 49 78 42"/>
+              <path d="M36 58 50 40 68 42 82 58 78 80 62 92 44 86Z"/>
+            </svg>
+            <!-- CAMADA 2: o que nasce do impacto, mais os CACOS -->
+            <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
+                 style="--t:.58;--k:10" stroke-width=".75" stroke-opacity=".85">
+              <path class="caco" d="M55 57 65 59 63 54Z M70 68 82 58 78 80Z
+                                    M48 76 56 82 44 86Z M56 57 48 64 49 60Z
+                                    M66 79 70 68 78 80 62 92Z"/>
+              <path d="M58 70 49 60 M58 70 56 57 M58 70 66 60 M58 70 70 66
+                       M58 70 69 82 M58 70 62 85 M58 70 53 84 M58 70 47 79
+                       M58 70 45 68 M58 70 48 63 M58 70 63 54 M58 70 74 71
+                       M58 70 57 92"/>
+              <path d="M48 64 55 57 65 59 70 68 66 79 56 82Z"/>
+            </svg>
+            <!-- CAMADA 1: a cratera do impacto. mais grossa, mais clara e a
+                 ÚLTIMA a fechar — é o ponto onde o vidro cedeu. -->
+            <svg viewBox="0 0 100 203" preserveAspectRatio="xMidYMid slice"
+                 style="--t:.58;--k:8.3" stroke-width=".95" stroke-opacity="1">
+              <path class="caco" d="M54 66 62 65 64 72 60 76 55 74Z"/>
+              <path d="M54 66 62 65 64 72 60 76 55 74Z
+                       M56 68 61 71 M58 64 59 76 M53 70 64 69 M60 66 57 75"/>
+            </svg>
           </div>
 
           <!-- fecho verde: preenchimento em espiral + check -->
@@ -1446,6 +1742,44 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
           <path class="cheio" d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
         </svg>
       </span></span></span></span>
+    </div>
+
+    <!-- CENA DO STATUS: FORA da moldura, ao lado do aparelho. dentro da
+         tela ele disputava os mesmos pixels com a trinca, e num celular
+         já encolhido as quatro etapas ficavam ilegíveis. -->
+    <div class="status" aria-hidden="true">
+      <div class="st-topo">
+        <div>
+          <b>iPhone 12 · tela trincada</b>
+          <span>OS 2431 · Marina Rocha</span>
+        </div>
+        <span class="st-vivo"><i></i>ao vivo</span>
+      </div>
+
+      <div class="st-linha">
+        <div class="st-etapa" style="--t:.06">
+          <span class="st-bolha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.6 10 17.4 19.2 7.2"/></svg></span>
+          <b>Recebido</b><i>ter, 14:02</i>
+        </div>
+        <div class="st-etapa" style="--t:.22">
+          <span class="st-bolha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.6 10 17.4 19.2 7.2"/></svg></span>
+          <b>Orçamento</b><i>ter, 16:48</i>
+        </div>
+        <div class="st-etapa" style="--t:.40">
+          <span class="st-bolha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.6 10 17.4 19.2 7.2"/></svg></span>
+          <b>Em conserto</b><i>qua, 09:15</i>
+        </div>
+        <div class="st-etapa" style="--t:.62">
+          <span class="st-bolha"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.6 10 17.4 19.2 7.2"/></svg></span>
+          <b>Pronto</b><i>qui, 11:30</i>
+        </div>
+      </div>
+
+      <div class="st-dados">
+        <div><span>Valor</span><b>R$ 420</b></div>
+        <div><span>Prazo</span><b>2 dias</b></div>
+        <div><span>Retirada</span><b>qui, 16h</b></div>
+      </div>
     </div>
 
     <div class="painel-scrim"></div>
@@ -1658,19 +1992,47 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
        DISTÂNCIA em vh de cada fase seja a intencional. abaixo, a coluna
        da direita é o que realmente importa.
 
+         O hero foi de 780vh para 1090vh para caber a CENA DO STATUS. as
+         frações abaixo foram todas recalculadas a partir das distâncias
+         em vh: nenhuma fase que já existia mudou de tamanho, só de
+         posição. tudo a partir da conversa deslocou 309vh.
+
+         a construção do status leva 260vh — mais que a conversa inteira.
+         não é exagero: ali acontecem quatro etapas, o vidro sarando em
+         cinco camadas e a tela voltando a acender. na primeira versão
+         eram 127vh e não dava tempo de ler nada.
+
          fase              faixa         distância
-         celular encolhe   0    → .157    107vh
-         texto some        .041 → .132     62vh
-         peças sobem       0    → .182
-         CONVERSA+FRASES   .090 → .396    208vh
-         foco no celular   .098 → .247    101vh
-         painel (entra)    .428 → .486     39vh
-         painel (SEGURA)   .486 → .576     61vh   destaque do card
-         painel (sai)      .576 → .614     26vh
-         FECHO VERDE       .618 → .758     95vh
-         verde (SEGURA)    .758 → .846     60vh   ← a tela do check
-         título final      .846 → .901     37vh
-         título (SEGURA)   .901 → 1        67vh   ← ele precisa PARAR
+         celular encolhe   0    → .108    107vh
+         texto some        .028 → .091     62vh
+         peças sobem       0    → .125
+         STATUS (entra)    .071 → .126     55vh
+         STATUS (constrói) .071 → .333    260vh  ← trinca + etapas + tela acende
+         STATUS (sai)      .343 → .394     50vh
+         CONVERSA+FRASES   .374 → .584    208vh
+         foco no celular   .067 → .170    101vh
+         painel (entra)    .606 → .646     39vh
+         painel (SEGURA)   .646 → .708     61vh   destaque do card
+         painel (sai)      .708 → .734     26vh
+         FECHO VERDE       .736 → .833     95vh
+         verde (SEGURA)    .833 → .893     60vh   ← a tela do check
+         título final      .893 → .931     37vh
+         título (SEGURA)   .931 → 1        68vh   ← ele precisa PARAR
+
+       e DENTRO do --pse a cena se escalona sozinha, pelos limiares:
+         .04 → .16  a tela apaga e o vidro estilhaça
+         .06        etapa "Recebido"
+         .22        etapa "Orçamento"
+         .34 → .68  o vidro sara, de fora para dentro, cinco camadas
+         .40        etapa "Em conserto"
+         .62        etapa "Pronto"
+         .70 → .88  a TELA ACENDE de volta
+         .70 → .95  valor, prazo e retirada aparecem
+
+       A ORDEM DA NARRATIVA é o motivo da cena nova: o aparelho chega, o
+       conserto ACONTECE à vista, e só então vem o pós-venda com a
+       garantia. Antes a página pulava do celular direto para o elogio,
+       e o meio — que é justamente o que o sistema faz — ficava de fora.
 
        DUAS PAUSAS, e as duas existem pelo mesmo motivo: uma imagem que
        termina de se formar no instante em que a próxima começa nunca é
@@ -1680,7 +2042,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
        nenhuma das duas custou variável nova. no fim de cada faixa a
        variável fica grudada em 1 e todo mundo já está no estado final,
        então a pausa é só o espaço vazio entre uma faixa e a seguinte:
-       --pv fecha em .758 e --p4 só abre em .846. os 88 milésimos de
+       --pv fecha em .833 e --p4 só abre em .893. os 60 milésimos de
        silêncio entre os dois são a tela verde parada.
 
        dentro de --pa tudo se escalona sozinho, pelo --t de cada
@@ -1695,9 +2057,9 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
          .00 → .25  o chat sai
          .18 → .43  o check entra
          .34 → 1    a espiral preenche a tela                          */
-    const pt = ease(range(p,.041,.132));
-    const p4 = ease(range(p,.846,.901));
-    const pEncolhe = ease(range(p,0,.157));
+    const pt = ease(range(p,.028,.091));
+    const p4 = ease(range(p,.893,.931));
+    const pEncolhe = ease(range(p,0,.108));
 
     def('--p', pEncolhe.toFixed(4));
     /* escala e deslocamento do celular: substituem a antiga animação
@@ -1713,27 +2075,37 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     def('--ptexto',
         ((ancoraTexto - deslocFinal * pEncolhe) / escala - ancoraTexto).toFixed(1) + 'px');
     def('--pt', pt.toFixed(4));
+    /* CENA DO STATUS — o mesmo PULSO do painel: sobe, SEGURA, volta a
+       zero. a pausa entre .126 e .343 é o que dá tempo de ler as quatro
+       etapas; sem ela a cena termina de se formar no instante em que
+       começa a sair, e ninguém chega a vê-la pronta. */
+    const ps = ease(range(p,.071,.126)) - ease(range(p,.343,.394));
+    def('--ps', ps.toFixed(4));
+    /* e a construção das etapas, LINEAR e à parte: um pulso não serve
+       para escalonar porque volta a descer, e as etapas apagariam na
+       ordem inversa. mesmo papel do --pa para os balões. */
+    def('--pse', range(p,.071,.333).toFixed(4));
     /* a conversa NÃO usa easing: cada rolada de roda tem que empurrar
        a construção na mesma proporção, senão os balões chegam em
        rajadas irregulares */
-    def('--pa', range(p,.090,.396).toFixed(4));
+    def('--pa', range(p,.374,.584).toFixed(4));
     /* SEM easing também: parallax tem que responder direto ao giro da
-       roda. as peças somem em .182 e --po fica travado em 1 depois
+       roda. as peças somem em .125 e --po fica travado em 1 depois
        disso — nenhuma volta a aparecer. */
-    def('--po', range(p,0,.182).toFixed(4));
+    def('--po', range(p,0,.125).toFixed(4));
     /* a luz migra do topo para o aro JUNTO com a troca de conteúdo:
-       o texto branco sai (.132) e a conversa entra (.090) — é nesse
+       o texto branco sai (.091) e o STATUS entra (.071) — é nesse
        momento que o celular precisa assumir o foco, não depois. */
-    def('--pf', ease(range(p,.098,.247)).toFixed(4));
-    /* PULSO: sobe, SEGURA, e volta a zero. a pausa entre .486 e .576 é
+    def('--pf', ease(range(p,.067,.170)).toFixed(4));
+    /* PULSO: sobe, SEGURA, e volta a zero. a pausa entre .646 e .708 é
        o destaque do card — eram 16vh, agora são 61vh. o painel tem um
        scrim de tela cheia, então precisa sair antes do fecho verde,
        senão apagaria o check e a espiral. */
-    const pp = ease(range(p,.428,.486)) - ease(range(p,.576,.614));
+    const pp = ease(range(p,.606,.646)) - ease(range(p,.708,.734));
     def('--pp', pp.toFixed(4));
     /* fecho verde SEM easing: a varredura da espiral precisa acompanhar
        a roda de forma linear, senão acelera e freia no meio do giro */
-    def('--pv', range(p,.618,.758).toFixed(4));
+    def('--pv', range(p,.736,.833).toFixed(4));
     def('--p4', p4.toFixed(4));
 
     /* botões invisíveis não podem receber clique */
