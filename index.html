@@ -1500,25 +1500,9 @@ section{position:relative;z-index:2}
 /* a grade não tem mais animação de tempo — ela só se move quando a
    pessoa rola, então não há o que desligar aqui */
 
-.features{padding:clamp(70px,11vw,140px) 0}
 .sec-head{text-align:center;max-width:680px;margin:0 auto clamp(40px,6vw,70px)}
 .sec-head h2{font-size:clamp(28px,4.4vw,54px);font-weight:600;letter-spacing:-.035em;line-height:1.1}
 .sec-head p{margin-top:16px;color:var(--muted);font-size:17px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-@media(max-width:900px){.grid{grid-template-columns:1fr}}
-.feat{
-  border:1px solid var(--line);border-radius:22px;padding:28px;
-  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
-  transition:border-color .2s ease,transform .2s ease;
-}
-.feat:hover{border-color:rgba(91,227,255,.3);transform:translateY(-3px)}
-.feat .ico{
-  width:44px;height:44px;border-radius:13px;margin-bottom:18px;
-  display:grid;place-items:center;font-size:20px;
-  background:rgba(46,155,255,.12);border:1px solid rgba(91,227,255,.22);
-}
-.feat h3{font-size:19px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
-.feat p{color:var(--muted);font-size:15px}
 
 /* ============================================================
    PORTAL DO CLIENTE — o lado de quem deixou o aparelho
@@ -1789,7 +1773,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
             <h1 class="text-grad">Da bancada à entrega,<br><span class="blue-grad">num sistema só.</span></h1>
             <div class="hero-actions">
               <a href="#contato" class="btn btn-primary">Testar 14 dias grátis</a>
-              <a href="#recursos" class="btn btn-ghost">Ver como funciona</a>
+              <a href="#modulos" class="btn btn-ghost">Ver como funciona</a>
             </div>
           </div>
 
@@ -1948,47 +1932,6 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 <section class="strip">
   <div class="container">
     <span>Tela Nova</span><span>CellDoctor</span><span>Reparo Já</span><span>Assistec</span><span>MobileFix</span>
-  </div>
-</section>
-
-<section class="features" id="recursos">
-  <div class="container">
-    <div class="sec-head">
-      <h2 class="text-grad">Da recepção ao pós-venda</h2>
-      <p>Um fluxo só: recebeu o aparelho, orçou, consertou, avisou o cliente, entregou.</p>
-    </div>
-    <div class="grid">
-      <div class="feat">
-        <div class="ico">🧾</div>
-        <h3>Ordem de serviço digital</h3>
-        <p>Defeito, IMEI, fotos de entrada e checklist. Assinatura do cliente na tela, sem papel.</p>
-      </div>
-      <div class="feat">
-        <div class="ico">💬</div>
-        <h3>Aviso automático</h3>
-        <p>Orçamento pronto, aparelho consertado, peça chegou — o WhatsApp dispara sozinho.</p>
-      </div>
-      <div class="feat">
-        <div class="ico">🔩</div>
-        <h3>Estoque de peças</h3>
-        <p>Baixa automática ao usar na OS. Alerta quando o display mais vendido está acabando.</p>
-      </div>
-      <div class="feat">
-        <div class="ico">🛡️</div>
-        <h3>Garantia por IMEI</h3>
-        <p>Histórico completo do aparelho. Sabe na hora se aquele retorno está coberto ou não.</p>
-      </div>
-      <div class="feat">
-        <div class="ico">✅</div>
-        <h3>Orçamento com aprovação</h3>
-        <p>Cliente aprova por link, com data e hora registradas. Fim do "eu não autorizei isso".</p>
-      </div>
-      <div class="feat">
-        <div class="ico">📊</div>
-        <h3>Relatório por técnico</h3>
-        <p>Quantas OS cada um fechou, tempo médio de reparo e taxa de retorno na garantia.</p>
-      </div>
-    </div>
   </div>
 </section>
 
