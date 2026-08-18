@@ -83,6 +83,12 @@
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
+/* BARRA NATIVA FORA. só se esconde porque entrou substituto: o
+   indicador de rolagem (.rolagem) marca a posição E navega. sem ele
+   isso seria tirar affordance sem devolver nada.
+   roda e teclado seguem funcionando — nada aqui mexe no scroll em si. */
+html{scrollbar-width:none}
+html::-webkit-scrollbar{width:0;height:0}
 html{scroll-behavior:smooth}
 /* quando o Lenis assume, o scroll-behavior nativo tem que sair do
    caminho — os dois brigando causam engasgo nos links de âncora */
@@ -1591,7 +1597,7 @@ section{position:relative;z-index:2}
 
 /* ERA só uma borda à esquerda: dois blocos de texto solto num vão de
    70px, que lia como rodapé e não como argumento. agora são cartões,
-   na mesma linguagem do .cta-box e do card de status — o que a página
+   na mesma linguagem do card de status — o que a página
    já ensinou o olho a reconhecer como "conteúdo com peso". */
 .portal-arg{
   border:1px solid var(--line);border-radius:20px;
@@ -1618,50 +1624,71 @@ section{position:relative;z-index:2}
 }
 .portal-arg p{color:var(--muted);font-size:15px;line-height:1.65}
 
-.cta{padding:0 0 clamp(80px,12vw,150px)}
-/* a caixa era o elemento mais QUIETO de uma página inteira de
-   coreografia — ela é o desfecho e precisa ter o peso disso. o halo
-   externo é a mesma família do card de status; o brilho de topo sobe
-   um pouco e a borda deixa de ser cinza. */
-.cta-box{
-  position:relative;
-  border:1px solid rgba(140,190,255,.20);border-radius:32px;
-  padding:clamp(40px,7vw,80px) 28px;text-align:center;
-  background:
-    radial-gradient(120% 130% at 50% 0%,rgba(46,155,255,.24),transparent 62%),
-    linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.012));
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.16),
-    0 0 90px rgba(46,155,255,.14);
-}
-.cta-box h2{font-size:clamp(28px,4.6vw,56px);font-weight:600;letter-spacing:-.04em;line-height:1.08;text-wrap:balance}
-.cta-box p{color:var(--muted);margin:18px auto 30px;max-width:460px;text-wrap:pretty}
 
-/* SELOS de quebra de objeção. lidos antes do título: é o que responde
-   "quanto custa para eu descobrir se presta" antes de a pergunta nascer. */
-.cta-selos{
-  /* list-style:none é obrigatório: o <li> continua display:list-item
-     mesmo virando filho de flex, e com padding-left:0 o marcador
-     apareceria para fora da caixa. */
-  list-style:none;padding:0;
-  display:flex;flex-wrap:wrap;justify-content:center;
-  gap:9px;margin-bottom:clamp(22px,2.6vw,32px);
+
+/* ============================================================
+   INDICADOR DE ROLAGEM — substitui a barra nativa
+
+   a barra padrão do Windows é cinza, grossa e larga o suficiente para
+   cortar a cena do hero pela direita. some, e no lugar entram três
+   pontos: um por seção, ligados por um trilho que se preenche.
+
+   ele NÃO é só enfeite — é navegação. cada ponto é um link, então
+   quem quer pular direto para o portal do cliente clica ali. isso é o
+   que justifica esconder a barra: some uma affordance, entra outra.
+
+   toda a movimentação é por variável escrita no scroll (--rolagem) e
+   por classe. nada aqui pinta área grande. */
+.rolagem{
+  position:fixed;right:clamp(14px,1.6vw,28px);top:50%;translate:0 -50%;
+  z-index:70;display:flex;flex-direction:column;align-items:center;
+  gap:18px;padding:14px 0;
 }
-.cta-selo{
-  display:inline-flex;align-items:center;gap:7px;
-  padding:.5em .9em;border-radius:999px;
-  font-size:13px;font-weight:600;color:#cfe3ff;
-  background:rgba(46,155,255,.10);
-  box-shadow:inset 0 0 0 1px rgba(91,227,255,.22);
+/* o trilho e o preenchimento vivem em pseudo-elementos do próprio
+   contêiner: um elemento a menos no DOM por ponto. */
+.rolagem::before,.rolagem::after{
+  content:'';position:absolute;left:50%;translate:-50% 0;
+  width:1px;top:0;
 }
-.cta-selo svg{
-  width:13px;height:13px;flex:none;fill:none;stroke:#5be3ff;
-  stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;
+.rolagem::before{bottom:0;background:rgba(255,255,255,.14)}
+.rolagem::after{
+  background:linear-gradient(180deg,var(--accent-1),var(--accent-2));
+  /* a altura É o progresso: uma propriedade, escrita uma vez por quadro */
+  height:calc(var(--rolagem,0) * 100%);
+  box-shadow:0 0 8px rgba(91,227,255,.55);
 }
-/* o botão do desfecho é maior que o do topo: ali ele convive com o
-   menu, aqui ele é a única coisa clicável da tela. */
-.btn-cta{height:52px;padding:0 30px;font-size:15.5px}
-.cta-micro{margin:18px 0 0;color:#7c8598;font-size:13.5px}
+.rol-ponto{
+  position:relative;width:9px;height:9px;border-radius:50%;
+  background:rgba(255,255,255,.22);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.16);
+  transition:background .25s ease, scale .25s ease;
+}
+.rol-ponto:hover{background:rgba(255,255,255,.5)}
+.rol-ponto.ativo{
+  background:var(--accent-1);
+  scale:1.5;
+  box-shadow:0 0 12px rgba(91,227,255,.8);
+}
+/* o rótulo aparece no hover, à ESQUERDA: à direita não há espaço */
+.rol-ponto::after{
+  content:attr(data-rotulo);
+  position:absolute;right:20px;top:50%;translate:0 -50%;
+  white-space:nowrap;font-size:12px;font-weight:600;letter-spacing:-.01em;
+  color:#e8eef8;background:rgba(12,18,32,.92);
+  border:1px solid rgba(140,190,255,.22);border-radius:8px;
+  padding:5px 9px;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s ease, translate .2s ease;
+  translate:6px -50%;
+}
+.rol-ponto:hover::after,.rol-ponto:focus-visible::after{opacity:1;translate:0 -50%}
+/* na tela estreita o polegar cobre a lateral e não há vão: fica só o
+   trilho fino, sem os rótulos */
+@media(max-width:760px){
+  .rolagem{right:8px;gap:12px}
+  .rol-ponto{width:7px;height:7px}
+  .rol-ponto::after{display:none}
+}
 
 footer{border-top:1px solid var(--line);padding:28px 0;color:#5b5b60;font-size:14px}
 footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
@@ -1721,8 +1748,8 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     </span>
   </div>
   <!-- TODO: quando o sistema estiver no ar, este href vira a URL dele.
-       até lá aponta para o fecho da página, para não ser clique morto. -->
-  <a href="#contato" class="btn btn-plain">Testar grátis</a>
+       até lá aponta para a última seção, para não ser clique morto. -->
+  <a href="#cliente" class="btn btn-plain">Testar grátis</a>
 </nav>
 
 <!-- =========================== HERO =========================== -->
@@ -2140,30 +2167,14 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
   </div>
 </section>
 
-<section class="cta" id="contato">
-  <div class="container">
-    <div class="cta-box">
-      <!-- OS SELOS VÊM ANTES DO TÍTULO, de propósito: "sem cartão" é a
-           coisa mais persuasiva desta seção e estava em cinza, corpo 15,
-           embaixo. quebra de objeção só funciona quando é lida ANTES da
-           decisão, não depois. -->
-      <ul class="cta-selos">
-        <li class="cta-selo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5"/></svg>14 dias grátis</li>
-        <li class="cta-selo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Sem cartão</li>
-        <li class="cta-selo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5 9.5 18 20 6.5"/></svg>Seus dados migrados</li>
-      </ul>
 
-      <h2 class="text-grad">Tire a sua assistência <br>do <span class="blue-grad">caderninho</span></h2>
-      <p>Abra a primeira OS hoje. O que já está no caderno, a gente passa para o sistema.</p>
-
-      <!-- TODO: este href é o único ponto morto da página. quando existir
-           o cadastro (ou o WhatsApp), é esta linha que muda. -->
-      <a href="#" class="btn btn-primary btn-cta">Começar os 14 dias</a>
-
-      <p class="cta-micro">Sem fidelidade. Você cancela quando quiser.</p>
-    </div>
-  </div>
-</section>
+<!-- INDICADOR DE ROLAGEM: um ponto por seção, no lugar da barra nativa.
+     é também navegação — cada ponto leva à sua seção. -->
+<nav class="rolagem" aria-label="Seções da página">
+  <a href="#hero"    class="rol-ponto" data-rotulo="Início"></a>
+  <a href="#modulos" class="rol-ponto" data-rotulo="O que faz"></a>
+  <a href="#cliente" class="rol-ponto" data-rotulo="Seu cliente"></a>
+</nav>
 
 <footer>
   <div class="container">
@@ -2357,6 +2368,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
     if(text.style.pointerEvents !== clicavel) text.style.pointerEvents = clicavel;
 
     atualizaModulos();
+    atualizaRolagem();
   }
 
   /* ---------- seção dos módulos (túnel + cards) ----------
@@ -2400,6 +2412,50 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
       tunelEl && tunelEl.style.setProperty('--tunel', av);
     }
   }
+  /* ---------- indicador de rolagem ----------
+     pendurado no update(), que já roda a cada quadro de scroll: não
+     acrescenta listener nem laço próprio. escreve UMA variável e troca
+     uma classe — o resto é CSS. */
+  const pontos = [...document.querySelectorAll('.rol-ponto')];
+  const alvos  = pontos.map(a => document.querySelector(a.getAttribute('href')));
+  let ativoAnterior = -1, rolAnterior = null;
+
+  function atualizaRolagem(){
+    if(!pontos.length) return;
+    const rolavel = document.documentElement.scrollHeight - innerHeight;
+    const prog = rolavel > 0 ? clamp(window.scrollY / rolavel, 0, 1) : 0;
+    const v = prog.toFixed(4);
+    if(rolAnterior !== v){ rolAnterior = v; def('--rolagem', v); }
+
+    /* ativo = a última seção cujo topo já passou do meio da tela. o meio,
+       e não o topo, porque com seções de várias telas o topo sai de vista
+       cedo demais e o ponto acenderia antes de a seção ser a que se vê. */
+    const meio = window.scrollY + innerHeight / 2;
+    let i = 0;
+    for(let k = 0; k < alvos.length; k++){
+      if(alvos[k] && alvos[k].offsetTop <= meio) i = k;
+    }
+    if(i !== ativoAnterior){
+      if(ativoAnterior >= 0) pontos[ativoAnterior].classList.remove('ativo');
+      pontos[i].classList.add('ativo');
+      pontos[i].setAttribute('aria-current','true');
+      if(ativoAnterior >= 0) pontos[ativoAnterior].removeAttribute('aria-current');
+      ativoAnterior = i;
+    }
+  }
+
+  /* clique: o Lenis assume quando existe, senão cai no scroll nativo.
+     sem isto o salto brigaria com a interpolação dele e voltaria. */
+  for(const a of pontos){
+    a.addEventListener('click', e => {
+      const alvo = document.querySelector(a.getAttribute('href'));
+      if(!alvo) return;
+      e.preventDefault();
+      if(suave) suave.scrollTo(alvo, { offset: 0 });
+      else alvo.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
   function onScroll(){ if(!ticking){ ticking = true; requestAnimationFrame(update); } }
 
   addEventListener('scroll', onScroll, {passive:true});
@@ -2410,8 +2466,11 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
        Lenis, duration 1.5, easing exponencial, só na roda) ----------
      se o script não carregar, a página continua funcionando com a
      rolagem nativa — nada aqui é pré-requisito. */
+  /* guardado fora do if: o indicador de rolagem precisa dele para o
+     clique nos pontos, e com reduced-motion ele fica null de propósito. */
+  let suave = null;
   if(window.Lenis && !matchMedia('(prefers-reduced-motion:reduce)').matches){
-    const lenis = new Lenis({
+    const lenis = suave = new Lenis({
       /* a referência usa 1.5, que assenta devagar demais aqui.
          1.05 mantém a suavidade e devolve a resposta ao giro da roda. */
       duration:1.05,
