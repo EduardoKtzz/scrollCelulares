@@ -1475,6 +1475,33 @@ section{position:relative;z-index:2}
 .feat h3{font-size:19px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
 .feat p{color:var(--muted);font-size:15px}
 
+/* ============================================================
+   PORTAL DO CLIENTE — o lado de quem deixou o aparelho
+
+   é o DIFERENCIAL, e por isso fica colado no CTA: é a última coisa
+   lida antes de decidir.
+
+   aqui é só o ARGUMENTO. a tela do cliente já é MOSTRADA lá em cima, no
+   painel ao lado do aparelho durante a cena do status — repetir o mesmo
+   mockup duas vezes na mesma página só gastaria a novidade dele.
+   ============================================================ */
+.portal{padding:clamp(20px,4vw,50px) 0 clamp(70px,10vw,130px)}
+.portal-grid{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:clamp(28px,5vw,70px);align-items:start;
+}
+@media(max-width:900px){.portal-grid{grid-template-columns:1fr}}
+
+.portal-arg{
+  border-left:2px solid rgba(91,227,255,.35);
+  padding-left:clamp(16px,1.8vw,22px);
+}
+.portal-arg h3{
+  font-size:clamp(18px,1.7vw,22px);font-weight:600;
+  letter-spacing:-.02em;margin-bottom:9px;
+}
+.portal-arg p{color:var(--muted);font-size:15.5px;line-height:1.6}
+
 .cta{padding:0 0 clamp(80px,12vw,150px)}
 .cta-box{
   border:1px solid var(--line);border-radius:32px;
@@ -1909,6 +1936,30 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
         <h3>Relatório por técnico</h3>
         <p>Quantas OS cada um fechou, tempo médio de reparo e taxa de retorno na garantia.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== PORTAL DO CLIENTE: o diferencial, colado no CTA ============== -->
+<section class="portal" id="cliente">
+  <div class="container">
+    <div class="sec-head">
+      <h2 class="text-grad">Ninguém entrega o aparelho<br><span class="blue-grad">no escuro.</span></h2>
+      <p>O conserto inteiro cabe num link. É o que faz ele deixar o aparelho com você, e não na loja do shopping.</p>
+    </div>
+
+    <!-- o mockup saiu daqui: ele agora É a cena do status, dentro do
+         celular do hero. o que sobra é o argumento, e mostrar a mesma
+         tela duas vezes na mesma página só gastaria a novidade. -->
+    <div class="portal-grid">
+      <article class="portal-arg">
+        <h3>Emprestado é o aparelho, não a conta</h3>
+        <p>Sem canal, ele te chama pelo número da mãe e você atende quem não sabe a OS. O link abre no aparelho emprestado, e o acompanhamento é dele.</p>
+      </article>
+      <article class="portal-arg">
+        <h3>Mostre a tela e feche o serviço</h3>
+        <p>Etapa, valor, prazo e data de entrega, atualizados na hora. Você vira a tela no balcão e fecha com quem tem medo de deixar o aparelho.</p>
+      </article>
     </div>
   </div>
 </section>
