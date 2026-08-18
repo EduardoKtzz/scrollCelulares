@@ -1497,9 +1497,20 @@ section{position:relative;z-index:2}
 /* a grade não tem mais animação de tempo — ela só se move quando a
    pessoa rola, então não há o que desligar aqui */
 
-.sec-head{text-align:center;max-width:680px;margin:0 auto clamp(40px,6vw,70px)}
-.sec-head h2{font-size:clamp(28px,4.4vw,54px);font-weight:600;letter-spacing:-.035em;line-height:1.1}
-.sec-head p{margin-top:16px;color:var(--muted);font-size:17px}
+/* 680px NÃO cabia "Ninguém entrega o aparelho" a 54px: sobrava a
+   palavra "aparelho" sozinha numa linha, com o <br> jogando "no
+   escuro." para uma terceira. o title-wrap:balance reparte as linhas
+   por peso em vez de encher a primeira até estourar — é ele que evita
+   a linha órfã quando a largura da janela muda. */
+.sec-head{text-align:center;max-width:860px;margin:0 auto clamp(40px,6vw,70px)}
+.sec-head h2{
+  font-size:clamp(28px,4.4vw,54px);font-weight:600;
+  letter-spacing:-.035em;line-height:1.1;text-wrap:balance;
+}
+.sec-head p{
+  margin-top:18px;color:var(--muted);font-size:17px;line-height:1.6;
+  max-width:640px;margin-inline:auto;text-wrap:pretty;
+}
 
 /* ============================================================
    PORTAL DO CLIENTE — o lado de quem deixou o aparelho
@@ -1517,20 +1528,39 @@ section{position:relative;z-index:2}
    agora o respiro é simétrico ao pé, que é o valor de seção do arquivo. */
 .portal{padding:clamp(70px,10vw,130px) 0}
 .portal-grid{
-  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  gap:clamp(28px,5vw,70px);align-items:start;
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:clamp(16px,1.6vw,22px);align-items:stretch;
 }
-@media(max-width:900px){.portal-grid{grid-template-columns:1fr}}
+@media(max-width:1000px){.portal-grid{grid-template-columns:1fr;max-width:640px;margin:0 auto}}
 
+/* ERA só uma borda à esquerda: dois blocos de texto solto num vão de
+   70px, que lia como rodapé e não como argumento. agora são cartões,
+   na mesma linguagem do .cta-box e do card de status — o que a página
+   já ensinou o olho a reconhecer como "conteúdo com peso". */
 .portal-arg{
-  border-left:2px solid rgba(91,227,255,.35);
-  padding-left:clamp(16px,1.8vw,22px);
+  border:1px solid var(--line);border-radius:20px;
+  padding:clamp(22px,2.2vw,30px);
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.012));
+  transition:border-color .2s ease,transform .2s ease;
+}
+.portal-arg:hover{border-color:rgba(91,227,255,.28);transform:translateY(-3px)}
+/* ícone de TRAÇO, não emoji: emoji é multicolorido e vira clip-art em
+   tamanho pequeno — foi o que reprovou a ilha do celular três vezes. */
+.portal-ico{
+  display:grid;place-items:center;
+  width:40px;height:40px;border-radius:12px;margin-bottom:16px;
+  background:rgba(46,155,255,.12);border:1px solid rgba(91,227,255,.22);
+}
+.portal-ico svg{
+  width:20px;height:20px;fill:none;stroke:#7cc9ff;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round;
 }
 .portal-arg h3{
-  font-size:clamp(18px,1.7vw,22px);font-weight:600;
-  letter-spacing:-.02em;margin-bottom:9px;
+  font-size:clamp(17px,1.5vw,20px);font-weight:600;
+  letter-spacing:-.02em;margin-bottom:10px;line-height:1.25;
+  text-wrap:balance;
 }
-.portal-arg p{color:var(--muted);font-size:15.5px;line-height:1.6}
+.portal-arg p{color:var(--muted);font-size:15px;line-height:1.65}
 
 .cta{padding:0 0 clamp(80px,12vw,150px)}
 .cta-box{
@@ -1771,7 +1801,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
                é o que garante que ele encolha na mesma proporção da moldura -->
           <div class="hero-text">
             <p class="hero-kicker">Sistema completo para assistência técnica de celular.</p>
-            <h1 class="text-grad">Da bancada à entrega,<br><span class="blue-grad">num sistema só.</span></h1>
+            <h1 class="text-grad">Da bancada à entrega, <br><span class="blue-grad">num sistema só.</span></h1>
             <div class="hero-actions">
               <a href="#contato" class="btn btn-primary">Testar 14 dias grátis</a>
               <a href="#modulos" class="btn btn-ghost">Ver como funciona</a>
@@ -1934,22 +1964,65 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 <section class="portal" id="cliente">
   <div class="container">
     <div class="sec-head">
-      <h2 class="text-grad">Ninguém entrega o aparelho<br><span class="blue-grad">no escuro.</span></h2>
-      <p>O conserto inteiro cabe num link. É o que faz ele deixar o aparelho com você, e não na loja do shopping.</p>
+      <h2 class="text-grad">Ninguém entrega o aparelho <br><span class="blue-grad">no escuro.</span></h2>
+      <p>O seu cliente acompanha o conserto por um link, do mesmo jeito que
+         acompanha uma encomenda. Sem ligar, sem passar na loja, sem depender
+         de alguém lembrar de avisar.</p>
     </div>
 
     <!-- o mockup saiu daqui: ele agora É a cena do status, dentro do
          celular do hero. o que sobra é o argumento, e mostrar a mesma
-         tela duas vezes na mesma página só gastaria a novidade. -->
+         tela duas vezes na mesma página só gastaria a novidade.
+
+         os três argumentos são as três objeções reais de balcão, na
+         ordem em que aparecem: antes de deixar o aparelho (medo),
+         durante (ligação de status) e na entrega (discussão de preço). -->
     <div class="portal-grid">
+
       <article class="portal-arg">
-        <h3>Emprestado é o aparelho, não a conta</h3>
-        <p>Sem canal, ele te chama pelo número da mãe e você atende quem não sabe a OS. O link abre no aparelho emprestado, e o acompanhamento é dele.</p>
+        <span class="portal-ico">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><!-- olho: o que ele passa a ver -->
+            <path d="M2.2 12S5.9 5.8 12 5.8 21.8 12 21.8 12 18.1 18.2 12 18.2 2.2 12 2.2 12Z"/>
+            <circle cx="12" cy="12" r="3.1"/>
+          </svg>
+        </span>
+        <h3>Fecha quem chegou com medo</h3>
+        <p>Entregar o celular para um desconhecido dá insegurança — é por isso
+           que muita gente acaba preferindo a loja do shopping. Você vira a tela
+           no balcão, mostra as fotos de entrada e o acompanhamento que ele vai
+           receber, e a conversa muda de lugar.</p>
       </article>
+
       <article class="portal-arg">
-        <h3>Mostre a tela e feche o serviço</h3>
-        <p>Etapa, valor, prazo e data de entrega, atualizados na hora. Você vira a tela no balcão e fecha com quem tem medo de deixar o aparelho.</p>
+        <span class="portal-ico">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><!-- sino cortado: a ligação que não acontece -->
+            <path d="M6.4 9.4a5.6 5.6 0 0 1 8.2-4.9M17.6 11v-1.6"/>
+            <path d="M5 17.2h14s-1.4-1.2-1.4-4.2M6.4 9.4c0 4.2-1.4 5.4-1.4 5.4"/>
+            <path d="M10.3 20.2a2 2 0 0 0 3.4 0"/>
+            <path d="M3.4 3.4 20.6 20.6"/>
+          </svg>
+        </span>
+        <h3>Acaba o "já ficou pronto?"</h3>
+        <p>Quem deixou o celular na assistência ficou sem celular. Ele liga do
+           telefone da mãe, do trabalho, do vizinho — e não sabe o número da OS,
+           então alguém aí para tudo para ir procurar. Com o link, ele mesmo vê
+           a etapa, a qualquer hora.</p>
       </article>
+
+      <article class="portal-arg">
+        <span class="portal-ico">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><!-- documento assinado -->
+            <path d="M14 3.2H7.2a2 2 0 0 0-2 2v13.6a2 2 0 0 0 2 2h9.6a2 2 0 0 0 2-2V8.2Z"/>
+            <path d="M14 3.2v5h4.8"/>
+            <path d="M8.9 14.4l2.1 2.1 4.1-4.3"/>
+          </svg>
+        </span>
+        <h3>Acaba o "eu não autorizei isso"</h3>
+        <p>O orçamento é aprovado pelo próprio cliente, com data e hora
+           registradas. Se aparecer discussão na hora de entregar, está tudo
+           escrito — e quem confirmou foi ele.</p>
+      </article>
+
     </div>
   </div>
 </section>
@@ -1957,7 +2030,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
 <section class="cta" id="contato">
   <div class="container">
     <div class="cta-box">
-      <h2 class="text-grad">Tire a sua oficina<br>do <span class="blue-grad">caderninho</span></h2>
+      <h2 class="text-grad">Tire a sua oficina <br>do <span class="blue-grad">caderninho</span></h2>
       <p>14 dias grátis. Sem cartão, sem fidelidade, migração dos seus dados inclusa.</p>
       <a href="#" class="btn btn-primary" style="height:50px;padding:0 28px;font-size:15px">Falar com a gente</a>
     </div>
