@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Favicon: a mesma marca que vive comentada na .brand do index.
+       SVG e não PNG porque a aba pede 16px e o dock pede 32, e um vetor
+       serve os dois sem borrar. O fundo é obrigatório: sem ele o traço
+       azul some numa barra de abas clara. -->
+  <defs>
+    <linearGradient id="m" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5BE3FF"/>
+      <stop offset=".6" stop-color="#2E9BFF"/>
+      <stop offset="1" stop-color="#0B5FD8"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="#0A0F1A"/>
+  <!-- o glifo de 24x24 recuado 4px em cada lado, e o traço engrossado de
+       1.9 para 2.4: a 16px o original sumia. -->
+  <g transform="translate(4 4)">
+    <rect x="5.7" y="1.7" width="12.6" height="20.6" rx="3.3"
+          fill="none" stroke="url(#m)" stroke-width="2.4"/>
+    <path fill="url(#m)" d="M12 7.4 16.1 9.8 16.1 14.5 12 16.9 7.9 14.5 7.9 9.8Z"/>
+  </g>
+</svg>

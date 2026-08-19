@@ -131,6 +131,7 @@ function desenha(w, h, escalaGlifo) {
 const dir = path.join(__dirname, '..', 'icons');
 fs.mkdirSync(dir, { recursive: true });
 const saidas = [
+  ['icon-32.png',             32,   32, .80],  /* aba, para quem não lê SVG */
   ['icon-192.png',           192,  192, .78],
   ['icon-512.png',           512,  512, .78],
   ['icon-maskable-512.png',  512,  512, .56],  /* recuado: o Android recorta em círculo */
