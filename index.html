@@ -1759,9 +1759,17 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
       <i><span>c</span><span>e</span><span>l</span><span>l</span></i>
     </span>
   </div>
-  <!-- TODO: quando o sistema estiver no ar, este href vira a URL dele.
-       até lá aponta para a última seção, para não ser clique morto. -->
-  <a href="#cliente" class="btn btn-plain">Testar grátis</a>
+  <!-- O sistema está no ar. Aponta para /entrar e não para a raiz: a raiz é
+       a porta do CLIENTE ("Onde está o meu celular?"), com "Área da loja"
+       discreto no canto — quem chega daqui é o dono da oficina e acharia que
+       errou de site. /comecar redireciona para cá de qualquer forma, e o
+       próprio /entrar oferece "cadastrar minha loja".
+
+       O rótulo deixou de ser "Testar grátis": não há cobrança nem período de
+       teste no sistema, então prometer trial criaria a mesma dívida que a
+       seção antiga criava. -->
+  <a href="https://fixcell-self.vercel.app/entrar" class="btn btn-plain"
+     target="_blank" rel="noopener">Entrar no sistema</a>
 </nav>
 
 <!-- =========================== HERO =========================== -->
@@ -2228,7 +2236,7 @@ footer .container{display:flex;justify-content:space-between;gap:16px;flex-wrap:
         <a class="btn btn-primary"
            href="https://wa.me/5527988784048?text=Oi%20Eduardo%2C%20vi%20o%20FixCell%20e%20queria%20ver%20rodando%20na%20minha%20oficina"
            target="_blank" rel="noopener">Falar comigo no WhatsApp</a>
-        <a class="btn btn-ghost" href="#modulos">Rever o que ele faz</a>
+        <a class="btn btn-ghost" href="https://fixcell-self.vercel.app/entrar" target="_blank" rel="noopener">Abrir o sistema</a>
       </div>
 
       <p class="fecho-micro">Sem contrato e sem cadastro para conversar. Se não servir, a gente para por aí.</p>
